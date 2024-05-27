@@ -11,6 +11,8 @@ class AudioManager: ObservableObject {
     var audioEngine: AVAudioEngine
     var audioPlayerNode: AVAudioPlayerNode
     var timer: Timer?
+    var isPlaying: Bool = false
+    var currentFrequency: Double = 20.0
     
     init() {
         audioEngine = AVAudioEngine()
@@ -33,32 +35,17 @@ class AudioManager: ObservableObject {
             buffer.floatChannelData![1][i] = sample
         }
         buffer.frameLength = frameCount
+        isPlaying = true
         
         audioPlayerNode.stop()
         audioPlayerNode.scheduleBuffer(buffer, at: nil, options: .loops, completionHandler: nil)
         audioPlayerNode.play()
     }
     
-    func playToneWithRhythm(frequency: Double, rhythm: [Double]) {
-        stopTone()
-        var startTime: TimeInterval = 0
-        
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] timer in
-            guard let self = self else { return }
-            
-            if startTime >= rhythm.reduce(0, +) {
-                startTime = 0
-            }
-            
-            let currentBeat = rhythm.first(where: { $0 >= startTime })
-            
-            if let currentBeat = currentBeat, startTime.truncatingRemainder(dividingBy: currentBeat) < 0.1 {
-                self.playTone(frequency: frequency, duration: currentBeat)
-            } else {
-                self.stopTone()
-            }
-            
-            startTime += 0.1
+    func updateFrequency(_ frequency: Double) {
+        self.currentFrequency = frequency
+        if isPlaying {
+            playTone(frequency: currentFrequency, duration: 5)
         }
     }
     
