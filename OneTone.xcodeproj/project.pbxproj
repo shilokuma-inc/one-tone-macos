@@ -14,6 +14,7 @@
 		4F3564AF2C04ED740015F5B5 /* OneToneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F3564AE2C04ED740015F5B5 /* OneToneTests.swift */; };
 		4F3564B92C04ED740015F5B5 /* OneToneUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F3564B82C04ED740015F5B5 /* OneToneUITests.swift */; };
 		4F3564BB2C04ED740015F5B5 /* OneToneUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F3564BA2C04ED740015F5B5 /* OneToneUITestsLaunchTests.swift */; };
+		4F3564C82C04F2110015F5B5 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F3564C72C04F2110015F5B5 /* AudioManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +46,7 @@
 		4F3564B42C04ED740015F5B5 /* OneToneUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OneToneUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F3564B82C04ED740015F5B5 /* OneToneUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneToneUITests.swift; sourceTree = "<group>"; };
 		4F3564BA2C04ED740015F5B5 /* OneToneUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneToneUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		4F3564C72C04F2110015F5B5 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 			children = (
 				4F35649C2C04ED720015F5B5 /* OneToneApp.swift */,
 				4F35649E2C04ED720015F5B5 /* ContentView.swift */,
+				4F3564C72C04F2110015F5B5 /* AudioManager.swift */,
 				4F3564A02C04ED730015F5B5 /* Assets.xcassets */,
 				4F3564A52C04ED730015F5B5 /* OneTone.entitlements */,
 				4F3564A22C04ED730015F5B5 /* Preview Content */,
@@ -259,6 +262,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4F3564C82C04F2110015F5B5 /* AudioManager.swift in Sources */,
 				4F35649F2C04ED720015F5B5 /* ContentView.swift in Sources */,
 				4F35649D2C04ED720015F5B5 /* OneToneApp.swift in Sources */,
 			);
