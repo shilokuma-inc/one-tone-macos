@@ -8,12 +8,19 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var audioManager = AudioManager()
+    
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Button(action: {
+                audioManager.playTone(frequency: 24000.0)
+            }) {
+                Text("Play 20Hz Tone")
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
         }
         .padding()
     }
