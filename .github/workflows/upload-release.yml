@@ -1,0 +1,76 @@
+name: Upload/release
+
+on:
+  push:
+    branches:
+      - 'release/**'
+
+concurrency:
+  group: upload-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  upload:
+    name: release
+    runs-on: macos-latest
+
+    steps:
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: ci_post_clone
+        run: |
+          defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidatation -bool YES
+
+      # 署名は書き出し時にまとめて行うのでアーカイブ時は署名しない
+      # ビルド番号は run_number で一意にし、同じ番号のアップロードで弾かれないようにする
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -project OneTone.xcodeproj \
+            -scheme OneTone \
+            -sdk macosx \
+            -configuration Release \
+            -archivePath build.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }}
+
+      # macOS 版の ExportOptions.plist が必要（method は app-store、書き出し結果は .pkg になる）
+      - name: Create ExportOptions.plist
+        run: |
+          echo '${{ secrets.EXPORT_OPTIONS }}' > ExportOptions.plist
+
+      # altool は ./private_keys/AuthKey_<Key ID>.p8 を自動で探すので、ファイル名は Key ID にする
+      - name: Create Private Key
+        run: |
+          mkdir private_keys
+          echo -n '${{ secrets.APPLE_API_KEY_BASE64 }}' | base64 --decode > ./private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+
+      - name: Export pkg
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$(pwd)/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8" \
+            -authenticationKeyID ${{ secrets.APPLE_API_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.APPLE_API_ISSUER_ID }}
+
+      # 書き出しと同じ API キーで認証する。Apple ID 認証は Bundle ID からチームを逆引きするため、
+      # App Store Connect にアプリが無いと「provider public id を決定できない」で止まる
+      - name: Upload pkg to App Store Connect
+        run: |
+          xcrun altool --upload-app -f export/OneTone.pkg --type macos \
+            --apiKey ${{ secrets.APPLE_API_KEY_ID }} \
+            --apiIssuer ${{ secrets.APPLE_API_ISSUER_ID }}
+
+      - name: Upload pkg to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: OneTone.pkg
+          path: export/OneTone.pkg
