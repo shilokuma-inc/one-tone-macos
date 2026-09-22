@@ -20,6 +20,9 @@ struct ContentView: View {
                 .foregroundColor(Color.white)
                 .font(.custom("Helvetica Neue", size: 60))
                 .fontWeight(.bold)
+                // iPhone の幅では 60pt のままだとタイトルが収まらないので縮小を許可する
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
                 .overlay(
                     LinearGradient(
                         gradient: Gradient(colors: [
@@ -29,7 +32,11 @@ struct ContentView: View {
                         startPoint: .leading,
                         endPoint: .trailing
                     )
-                    .mask(Text("One Tone"))
+                    .mask(
+                        Text("One Tone")
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                    )
                     .font(.custom("Helvetica Neue", size: 60))
                     .fontWeight(.bold)
                     .hueRotation(Angle(degrees: hue))
@@ -61,6 +68,9 @@ struct ContentView: View {
                         .cornerRadius(10)
                 }
             }
+            // iOS の既定のボタンは背景を持たないため、白文字のままではライトモードで読めない。
+            // 塗りつぶしスタイルを指定して macOS/iOS どちらでも視認できるようにする
+            .buttonStyle(.borderedProminent)
             
             Slider(value: Binding<Double>(
                 get: {
