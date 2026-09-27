@@ -84,3 +84,25 @@ class AudioManager: ObservableObject {
         timer = nil
     }
 }
+
+/// 位相を保持したまま 1 サンプルずつサイン波を生成する。
+/// `AVAudioEngine` に依存しないため単体でテストでき、レンダーブロックからも値型のまま使える。
+struct ToneGenerator {
+    let sampleRate: Double
+    var frequency: Double
+    /// 1 周期を 0..<1 に正規化した位相。周波数を変えてもここは引き継ぐので波形が不連続にならない
+    private(set) var phase: Double = 0
+
+    init(sampleRate: Double, frequency: Double) {
+        self.sampleRate = sampleRate
+        self.frequency = frequency
+    }
+
+    mutating func nextSample() -> Float {
+        let sample = Float(sin(2.0 * Double.pi * phase))
+        phase += frequency / sampleRate
+        // 長時間再生しても精度が落ちないよう、整数部を捨てて 0..<1 に保つ
+        phase -= floor(phase)
+        return sample
+    }
+}
