@@ -348,4 +348,42 @@ final class OneToneTests: XCTestCase {
         manager.updateWaveform(.triangle)
         XCTAssertEqual(manager.currentWaveform, .triangle)
     }
+    // MARK: - FrequencyInput
+
+    func testFrequencyInputAcceptsValuesInRange() {
+        XCTAssertEqual(FrequencyInput.parse("440"), 440)
+        XCTAssertEqual(FrequencyInput.parse("20"), 20)
+        XCTAssertEqual(FrequencyInput.parse("20000"), 20000)
+        XCTAssertEqual(FrequencyInput.parse("1234.5"), 1234.5)
+        XCTAssertEqual(FrequencyInput.parse(" 1000 "), 1000)
+    }
+
+    func testFrequencyInputRejectsOutOfRangeOrInvalidValues() {
+        for text in ["19.9", "20001", "0", "-440", "", "abc", "440Hz", "nan", "inf"] {
+            XCTAssertNil(FrequencyInput.parse(text), text)
+        }
+    }
+
+    func testFrequencyInputFormatRoundsToInteger() {
+        XCTAssertEqual(FrequencyInput.format(439.6), "440")
+        XCTAssertEqual(FrequencyInput.format(20), "20")
+        XCTAssertEqual(FrequencyInput.format(19999.4), "19999")
+    }
+
+    func testFrequencyPresets() {
+        XCTAssertEqual(FrequencyInput.presets, [100, 440, 1000, 10000])
+        XCTAssertEqual(FrequencyInput.presets.map(FrequencyInput.presetLabel), ["100 Hz", "440 Hz", "1 kHz", "10 kHz"])
+        for preset in FrequencyInput.presets {
+            XCTAssertNotNil(FrequencyInput.parse(FrequencyInput.format(preset)))
+        }
+    }
+
+    func testFormattedFrequencyRoundTripsThroughParse() {
+        // 入力欄に表示した値をそのまま確定しても、範囲内の値として受け付けられる
+        for frequency in [20.0, 20.4, 440, 999.5, 19999.6, 20000] {
+            let parsed = FrequencyInput.parse(FrequencyInput.format(frequency))
+            XCTAssertNotNil(parsed, "\(frequency)")
+            XCTAssertEqual(parsed!, frequency, accuracy: 0.5)
+        }
+    }
 }

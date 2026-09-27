@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var audioManager = AudioManager()
     @State private var frequency: Double = 20.0
+    @State private var frequencyText: String = FrequencyInput.format(20.0)
     @State private var volume: Double = 0.5
     @State private var waveform: Waveform = .sine
     @State private var hue: Double = 0
@@ -81,17 +82,39 @@ struct ContentView: View {
                     log10(frequency)
                 },
                 set: { newValue in
-                    frequency = pow(10, newValue)
-                    // 再生中のトーンにもスライダーの値をそのまま追従させる
-                    audioManager.updateFrequency(frequency)
+                    setFrequency(pow(10, newValue))
                 }
             ), in: log10(20)...log10(20000), step: 0.02) {
                 Text("Frequency")
             }
             .padding()
             
-            Text("Frequency: \(Int(frequency)) Hz")
+            Text("Frequency: \(FrequencyInput.format(frequency)) Hz")
                 .padding()
+            
+            HStack {
+                TextField("Frequency", text: $frequencyText)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 100)
+                    #if os(iOS)
+                    // decimalPad には確定キーが無く onSubmit が呼べないため、確定キーのある数字キーボードにする
+                    .keyboardType(.numbersAndPunctuation)
+                    #endif
+                    .submitLabel(.done)
+                    .onSubmit(submitFrequencyText)
+                Text("Hz")
+            }
+            .textFieldStyle(.roundedBorder)
+            
+            HStack {
+                ForEach(FrequencyInput.presets, id: \.self) { preset in
+                    Button(FrequencyInput.presetLabel(preset)) {
+                        setFrequency(preset)
+                    }
+                }
+            }
+            .buttonStyle(.bordered)
+            .padding()
             
             Slider(value: Binding<Double>(
                 get: {
@@ -128,6 +151,49 @@ struct ContentView: View {
             Spacer()
         }
         .padding()
+    }
+    
+    /// スライダー・数値入力・プリセットのどこから変えても、表示と入力欄と再生中の音をそろえる
+    private func setFrequency(_ newFrequency: Double) {
+        frequency = newFrequency
+        frequencyText = FrequencyInput.format(newFrequency)
+        audioManager.updateFrequency(newFrequency)
+    }
+    
+    /// 範囲外や数値でない入力は反映せず、入力欄を現在の周波数に戻す
+    private func submitFrequencyText() {
+        if let newFrequency = FrequencyInput.parse(frequencyText) {
+            setFrequency(newFrequency)
+        } else {
+            frequencyText = FrequencyInput.format(frequency)
+        }
+    }
+}
+
+/// 周波数の数値入力とプリセットの定義。UI から切り離してテストできるようにしている
+enum FrequencyInput {
+    /// 可聴域に合わせた入力可能な範囲（スライダーと同じ）
+    static let range: ClosedRange<Double> = 20...20000
+    static let presets: [Double] = [100, 440, 1000, 10000]
+
+    /// 入力文字列を周波数に変換する。数値でない・範囲外の場合は nil
+    static func parse(_ text: String) -> Double? {
+        guard let value = Double(text.trimmingCharacters(in: .whitespaces)),
+              range.contains(value) else { return nil }
+        return value
+    }
+
+    /// 入力欄と表示ラベルで共通に使う表記（1Hz 単位に四捨五入）
+    static func format(_ frequency: Double) -> String {
+        String(Int(frequency.rounded()))
+    }
+
+    /// プリセットボタンの表記。1kHz 以上は kHz で表す
+    static func presetLabel(_ frequency: Double) -> String {
+        if frequency >= 1000 {
+            return "\(format(frequency / 1000)) kHz"
+        }
+        return "\(format(frequency)) Hz"
     }
 }
 
