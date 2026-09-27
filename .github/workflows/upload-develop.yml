@@ -46,7 +46,7 @@ jobs:
           defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidatation -bool YES
 
       # 配布用の署名は書き出し時にまとめて行うので、アーカイブ時は配布用証明書で署名しない
-      # ビルド番号は UTC の日時（YYYYMMDD.HHMM）にする。run_number はワークフローごとに 1 から数えるため、
+      # ビルド番号は UTC の日時（YYYYMMDD.HHMMSS）にする。run_number はワークフローごとに 1 から数えるため、
       # 手動アップロード済みの番号や develop / release 間で衝突し、既存より小さい番号として弾かれる
       - name: Archive
         run: |
@@ -57,7 +57,7 @@ jobs:
             -configuration Release \
             -archivePath build.xcarchive \
             ${{ matrix.signing }} \
-            CURRENT_PROJECT_VERSION=$(date -u +%Y%m%d.%H%M)
+            CURRENT_PROJECT_VERSION=$(date -u +%Y%m%d.%H%M%S)
 
       # .pkg / .ipa のどちらが書き出されるかは plist ではなくアーカイブのプラットフォームで決まるため、
       # ExportOptions.plist は macOS と iOS で共用できる（macOS 固有キーは iOS では無視される）。
