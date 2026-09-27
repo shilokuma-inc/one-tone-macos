@@ -137,3 +137,73 @@ struct ToneGenerator {
         return sample
     }
 }
+
+/// 目標値へ指数的に近づける 1 次のスムーザー。
+/// 値が急に切り替わると波形に段差ができてクリックノイズになるため、サンプルごとに少しずつ寄せる。
+struct ParameterSmoother {
+    private(set) var current: Double
+    var target: Double
+    /// 1 サンプルで残り差分のどれだけを詰めるか。`timeConstant` 秒で差分の約 63% が埋まる
+    private let coefficient: Double
+
+    init(value: Double, sampleRate: Double, timeConstant: Double) {
+        current = value
+        target = value
+        coefficient = 1 - exp(-1 / (timeConstant * sampleRate))
+    }
+
+    mutating func next() -> Double {
+        current += (target - current) * coefficient
+        return current
+    }
+
+    /// 補間を飛ばして目標値に揃える
+    mutating func snap(to value: Double) {
+        current = value
+        target = value
+    }
+}
+
+/// 周波数の補間と再生開始・停止時のフェードを含めて、出力サンプルを 1 つずつ作る。
+/// レンダーブロックから呼ぶため、メモリ確保をしない値型にしている。
+struct ToneSynthesizer {
+    /// 周波数とフェードの振幅を目標値へ寄せる時定数。数 ms で追従し、段差によるクリックノイズを出さない
+    static let smoothingTime: Double = 0.005
+    /// フェードアウト後、この振幅を下回ったら無音とみなす（約 -80dB）
+    static let silenceThreshold: Double = 0.0001
+
+    private(set) var generator: ToneGenerator
+    private var frequency: ParameterSmoother
+    private var gain: ParameterSmoother
+
+    init(sampleRate: Double, frequency: Double) {
+        generator = ToneGenerator(sampleRate: sampleRate, frequency: frequency)
+        self.frequency = ParameterSmoother(value: frequency, sampleRate: sampleRate, timeConstant: Self.smoothingTime)
+        gain = ParameterSmoother(value: 0, sampleRate: sampleRate, timeConstant: Self.smoothingTime)
+    }
+
+    /// フェードアウトが終わり、出力が無音になっているか
+    var isSilent: Bool {
+        gain.target == 0 && gain.current < Self.silenceThreshold
+    }
+
+    mutating func update(frequency newFrequency: Double, isPlaying: Bool) {
+        if gain.current < Self.silenceThreshold {
+            // 無音から鳴らし始めるときは、前回の周波数から滑らせず目標の周波数でそのまま始める
+            frequency.snap(to: newFrequency)
+        } else {
+            frequency.target = newFrequency
+        }
+        if !isPlaying && isSilent {
+            gain.snap(to: 0)
+        }
+        gain.target = isPlaying ? 1 : 0
+    }
+
+    /// 振幅 1 を上限としたサンプルを返す
+    mutating func nextSample() -> Float {
+        generator.frequency = frequency.next()
+        let currentGain = gain.next()
+        return generator.nextSample() * Float(currentGain)
+    }
+}
