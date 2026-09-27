@@ -11,7 +11,8 @@ class AudioManager: ObservableObject {
     var audioEngine: AVAudioEngine
     var audioPlayerNode: AVAudioPlayerNode
     var timer: Timer?
-    var isPlaying: Bool = false
+    /// Play / Stop ボタンの活性制御に使うため、UI から購読できるようにする
+    @Published private(set) var isPlaying: Bool = false
     var currentFrequency: Double = 20.0
 
     init() {
