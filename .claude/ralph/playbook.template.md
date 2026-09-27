@@ -96,6 +96,13 @@ PR 上の別のコメントを回答と誤認すると、未回答のままマ�
 - 返信あり → 内容に従って対応し（修正が要れば修正コミットを積む）、
   そのコメントに**返信の形で**対応内容とコミットへのリンクを書く。
   以後は通常の in-flight として B-2 で扱う
+  - 修正コミットが要る場合、元のスロットは B-2b で解放済みで別のタスクが使っている可能性がある。
+    **空きスロットを確保してから**その PR のブランチを checkout する:
+    ```
+    cd <空きスロット> && git fetch origin && git checkout -B <PRのブランチ> origin/<PRのブランチ>
+    ```
+    空きスロットが無ければ、その周回では修正せず回答待ちのままにする（返信だけ先に書かない）。
+    スロットを確保したら state の in-flight に戻し、ゴール項目の `※回答待ち` を外す
 
 ### B-2. in-flight PR の判定
 各 PR について、次の3つを**すべて**確認する。
@@ -171,8 +178,10 @@ gh pr merge <番号> --squash --delete-branch
        「文言を追加した場合はローカライズ検証を流す」
    常に流すには重いものを、条件付きで確実に流させるための枠。
    -->
-7. push して PR を作る（**base は必ず `{{INTEGRATION_BRANCH}}`**）:
+7. 作業ブランチを push して PR を作る（**base は必ず `{{INTEGRATION_BRANCH}}`**）。
+   未 push のまま `gh pr create` を呼ぶと push 先を対話的に尋ねられてループが止まるため、先に push する:
    ```
+   git push -u origin HEAD
    gh pr create --base {{INTEGRATION_BRANCH}} --title '【TYPE】…' --assignee @me --body '…'
    ```
    本文は `.github/pull_request_template.md` に従い、関連 Issue に `- resolve #<番号>` を書く
