@@ -146,11 +146,56 @@ struct ToneGenerator {
     }
 
     mutating func nextSample() -> Float {
-        let sample = Float(sin(2.0 * Double.pi * phase))
+        Float(Waveform.sine.value(at: advance()))
+    }
+
+    /// 現在の位相を返し、1 サンプル分進める
+    mutating func advance() -> Double {
+        let current = phase
         phase += frequency / sampleRate
         // 長時間再生しても精度が落ちないよう、整数部を捨てて 0..<1 に保つ
         phase -= floor(phase)
-        return sample
+        return current
+    }
+}
+
+/// 出力する波形。位相 0 で 0 から立ち上がるよう、すべての波形の位相をサイン波にそろえている
+enum Waveform: UInt8, CaseIterable, Identifiable {
+    case sine
+    case square
+    case triangle
+    case sawtooth
+
+    var id: Self { self }
+
+    var displayName: String {
+        switch self {
+        case .sine: return "Sine"
+        case .square: return "Square"
+        case .triangle: return "Triangle"
+        case .sawtooth: return "Sawtooth"
+        }
+    }
+
+    /// - Parameter phase: 1 周期を 0..<1 に正規化した位相
+    /// - Returns: -1...1 のサンプル値
+    func value(at phase: Double) -> Double {
+        switch self {
+        case .sine:
+            return sin(2.0 * Double.pi * phase)
+        case .square:
+            return phase < 0.5 ? 1 : -1
+        case .triangle:
+            if phase < 0.25 {
+                return 4 * phase
+            } else if phase < 0.75 {
+                return 2 - 4 * phase
+            } else {
+                return 4 * phase - 4
+            }
+        case .sawtooth:
+            return phase < 0.5 ? 2 * phase : 2 * phase - 2
+        }
     }
 }
 
