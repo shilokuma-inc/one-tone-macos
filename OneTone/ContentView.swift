@@ -106,6 +106,16 @@ struct ContentView: View {
             }
             .textFieldStyle(.roundedBorder)
             
+            HStack {
+                ForEach(FrequencyInput.presets, id: \.self) { preset in
+                    Button(FrequencyInput.presetLabel(preset)) {
+                        setFrequency(preset)
+                    }
+                }
+            }
+            .buttonStyle(.bordered)
+            .padding()
+            
             Slider(value: Binding<Double>(
                 get: {
                     volume
