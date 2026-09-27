@@ -106,8 +106,12 @@ elif [[ ! -f "$CTL/.claude/settings.json" ]]; then
 fi
 # 既存の settings.json はコピーしないため、deny が欠けたまま bypassPermissions で
 # 起動しうる。テンプレートの deny がすべて含まれているかを確かめる。
-DENY_MISSING=$(grep -oE '"Bash\([^"]+\)"' .claude/ralph/settings.deny.example.json \
-  | while read -r rule; do grep -qF "$rule" "$CTL/.claude/settings.json" 2>/dev/null || echo "$rule"; done)
+# 文字列一致だと allow 側の同じルールも「ある」と数えてしまうため、permissions.deny だけを比べる。
+command -v jq >/dev/null || { echo "jq が必要です（deny リストの検査に使います）" >&2; exit 1; }
+DENY_MISSING=$(jq -r --slurpfile have "$CTL/.claude/settings.json" \
+  '.permissions.deny - ($have[0].permissions.deny // []) | .[]' \
+  .claude/ralph/settings.deny.example.json) \
+  || { echo "エラー: $CTL/.claude/settings.json を JSON として読めません" >&2; exit 1; }
 if [[ -n "$DENY_MISSING" ]]; then
   echo "エラー: $CTL/.claude/settings.json に次の deny がありません。統合してから再実行してください:" >&2
   echo "$DENY_MISSING" | sed 's/^/      /' >&2
