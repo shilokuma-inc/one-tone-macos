@@ -102,4 +102,119 @@ final class OneToneTests: XCTestCase {
             previous = sample
         }
     }
+    // MARK: - ParameterSmoother
+
+    func testSmootherConvergesToTargetWithoutOvershoot() {
+        var smoother = ParameterSmoother(value: 0, sampleRate: 48000, timeConstant: 0.005)
+        smoother.target = 1
+        var previous = smoother.current
+        // 時定数の 10 倍（50ms）で差分は e^-10 ≒ 0.005% 未満になる
+        for _ in 0..<2400 {
+            let value = smoother.next()
+            XCTAssertGreaterThanOrEqual(value, previous)
+            XCTAssertLessThanOrEqual(value, 1)
+            previous = value
+        }
+        XCTAssertEqual(smoother.current, 1, accuracy: 1e-4)
+    }
+
+    func testSmootherReachesAbout63PercentAfterTimeConstant() {
+        var smoother = ParameterSmoother(value: 100, sampleRate: 48000, timeConstant: 0.005)
+        smoother.target = 200
+        for _ in 0..<240 {
+            _ = smoother.next()
+        }
+        XCTAssertEqual(smoother.current, 100 + 100 * (1 - exp(-1)), accuracy: 1e-6)
+    }
+
+    func testSmootherSnapSkipsInterpolation() {
+        var smoother = ParameterSmoother(value: 0, sampleRate: 48000, timeConstant: 0.005)
+        smoother.snap(to: 440)
+        XCTAssertEqual(smoother.current, 440)
+        XCTAssertEqual(smoother.next(), 440)
+    }
+
+    // MARK: - ToneSynthesizer
+
+    func testSynthesizerIsSilentBeforePlaying() {
+        var synthesizer = ToneSynthesizer(sampleRate: 48000, frequency: 440)
+        synthesizer.update(frequency: 440, isPlaying: false)
+        XCTAssertTrue(synthesizer.isSilent)
+    }
+
+    func testSynthesizerFadesInFromSilence() {
+        var synthesizer = ToneSynthesizer(sampleRate: 48000, frequency: 440)
+        synthesizer.update(frequency: 440, isPlaying: true)
+        XCTAssertFalse(synthesizer.isSilent)
+        // 立ち上がりの 1 周期目は最大振幅に届かない（いきなり ±1 にならない）
+        let firstCycle = (0..<109).map { _ in abs(synthesizer.nextSample()) }
+        XCTAssertLessThan(firstCycle.max()!, 0.5)
+        // 十分な時間が経てば最大振幅まで上がる
+        for _ in 0..<4800 {
+            _ = synthesizer.nextSample()
+        }
+        let settled = (0..<109).map { _ in abs(synthesizer.nextSample()) }
+        XCTAssertEqual(settled.max()!, 1, accuracy: 0.01)
+    }
+
+    func testSynthesizerFadesOutAndBecomesSilentAfterStop() {
+        var synthesizer = ToneSynthesizer(sampleRate: 48000, frequency: 440)
+        synthesizer.update(frequency: 440, isPlaying: true)
+        for _ in 0..<4800 {
+            _ = synthesizer.nextSample()
+        }
+        synthesizer.update(frequency: 440, isPlaying: false)
+        // 停止直後はまだフェードアウト中で、すぐには無音にならない
+        XCTAssertFalse(synthesizer.isSilent)
+        var previousPeak = Float.greatestFiniteMagnitude
+        // 約 -80dB まで下がるのは時定数の約 9.2 倍（46ms）。余裕を見て 1 周期 × 30（68ms）回す
+        for _ in 0..<30 {
+            let peak = (0..<109).map { _ in abs(synthesizer.nextSample()) }.max()!
+            XCTAssertLessThanOrEqual(peak, previousPeak + 1e-6)
+            previousPeak = peak
+        }
+        synthesizer.update(frequency: 440, isPlaying: false)
+        XCTAssertTrue(synthesizer.isSilent)
+    }
+
+    func testSynthesizerGlidesFrequencyWhilePlaying() {
+        var synthesizer = ToneSynthesizer(sampleRate: 48000, frequency: 440)
+        synthesizer.update(frequency: 440, isPlaying: true)
+        for _ in 0..<4800 {
+            _ = synthesizer.nextSample()
+        }
+        synthesizer.update(frequency: 880, isPlaying: true)
+        _ = synthesizer.nextSample()
+        // 1 サンプル目では目標に届かず、中間の周波数になっている
+        XCTAssertGreaterThan(synthesizer.generator.frequency, 440)
+        XCTAssertLessThan(synthesizer.generator.frequency, 880)
+        for _ in 0..<2400 {
+            _ = synthesizer.nextSample()
+        }
+        XCTAssertEqual(synthesizer.generator.frequency, 880, accuracy: 0.1)
+    }
+
+    func testSynthesizerStartsAtTargetFrequencyFromSilence() {
+        var synthesizer = ToneSynthesizer(sampleRate: 48000, frequency: 440)
+        // 停止中に周波数を変えてから鳴らしたときは、前の周波数から滑らせない
+        synthesizer.update(frequency: 1000, isPlaying: true)
+        _ = synthesizer.nextSample()
+        XCTAssertEqual(synthesizer.generator.frequency, 1000)
+    }
+
+    func testSynthesizerOutputHasNoLargeJumpOnStartAndStop() {
+        // 開始・停止をまたいでも、隣り合うサンプルの差は正弦波の 1 サンプル分の変化量を超えない
+        let sampleRate = 48000.0
+        let maxStep = Float(2 * Double.pi * 440 / sampleRate) + 1e-3
+        var synthesizer = ToneSynthesizer(sampleRate: sampleRate, frequency: 440)
+        var previous: Float = 0
+        for index in 0..<9600 {
+            if index % 1024 == 0 {
+                synthesizer.update(frequency: 440, isPlaying: (index / 1024) % 2 == 0)
+            }
+            let sample = synthesizer.nextSample()
+            XCTAssertLessThanOrEqual(abs(sample - previous), maxStep)
+            previous = sample
+        }
+    }
 }
