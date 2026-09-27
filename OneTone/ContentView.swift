@@ -58,6 +58,7 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
+                .disabled(audioManager.isPlaying)
                 
                 Button(action: {
                     audioManager.stopTone()
@@ -67,6 +68,7 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
+                .disabled(!audioManager.isPlaying)
             }
             // iOS の既定のボタンは背景を持たないため、白文字のままではライトモードで読めない。
             // 塗りつぶしスタイルを指定して macOS/iOS どちらでも視認できるようにする
