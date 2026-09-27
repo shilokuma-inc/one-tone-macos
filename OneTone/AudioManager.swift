@@ -20,7 +20,7 @@ class AudioManager: ObservableObject {
 
     // レンダーブロックはリアルタイムスレッドで動き、ロックやメモリ確保ができない。
     // そのため状態は init で確保したポインタに置き、メインスレッドは値の書き込みだけを行う
-    private let generator: UnsafeMutablePointer<ToneGenerator>
+    private let synthesizer: UnsafeMutablePointer<ToneSynthesizer>
     private let targetFrequency: UnsafeMutablePointer<Double>
     private let isRendering: UnsafeMutablePointer<Bool>
 
@@ -34,29 +34,30 @@ class AudioManager: ObservableObject {
         let outputSampleRate = audioEngine.outputNode.outputFormat(forBus: 0).sampleRate
         let sampleRate = outputSampleRate > 0 ? outputSampleRate : Self.fallbackSampleRate
 
-        generator = .allocate(capacity: 1)
-        generator.initialize(to: ToneGenerator(sampleRate: sampleRate, frequency: currentFrequency))
+        synthesizer = .allocate(capacity: 1)
+        synthesizer.initialize(to: ToneSynthesizer(sampleRate: sampleRate, frequency: currentFrequency))
         targetFrequency = .allocate(capacity: 1)
         targetFrequency.initialize(to: currentFrequency)
         isRendering = .allocate(capacity: 1)
         isRendering.initialize(to: false)
 
-        let generator = generator
+        let synthesizer = synthesizer
         let targetFrequency = targetFrequency
         let isRendering = isRendering
         let amplitude = Self.amplitude
         sourceNode = AVAudioSourceNode { isSilence, _, frameCount, audioBufferList -> OSStatus in
             let buffers = UnsafeMutableAudioBufferListPointer(audioBufferList)
-            guard isRendering.pointee else {
+            synthesizer.pointee.update(frequency: targetFrequency.pointee, isPlaying: isRendering.pointee)
+            // 停止後もフェードアウトが終わるまでは生成を続け、無音になってから止める
+            guard !synthesizer.pointee.isSilent else {
                 for buffer in buffers {
                     memset(buffer.mData, 0, Int(buffer.mDataByteSize))
                 }
                 isSilence.pointee = true
                 return noErr
             }
-            generator.pointee.frequency = targetFrequency.pointee
             for frame in 0..<Int(frameCount) {
-                let sample = generator.pointee.nextSample() * amplitude
+                let sample = synthesizer.pointee.nextSample() * amplitude
                 // 出力チャンネル数はデバイスによって変わるため、決め打ちにせず実際の数だけ書き込む
                 for buffer in buffers {
                     buffer.mData?.assumingMemoryBound(to: Float.self)[frame] = sample
@@ -78,7 +79,7 @@ class AudioManager: ObservableObject {
     deinit {
         // レンダーブロックがポインタを参照しなくなってから解放する
         audioEngine.stop()
-        generator.deallocate()
+        synthesizer.deallocate()
         targetFrequency.deallocate()
         isRendering.deallocate()
     }
@@ -104,7 +105,7 @@ class AudioManager: ObservableObject {
         isPlaying = true
     }
 
-    /// 再生中でも停止中でも呼んでよい。再生中は次のレンダー周期から位相を保ったまま新しい周波数になる
+    /// 再生中でも停止中でも呼んでよい。再生中は位相を保ったまま、数 ms かけて新しい周波数へ移る
     func updateFrequency(_ frequency: Double) {
         currentFrequency = frequency
         targetFrequency.pointee = frequency
