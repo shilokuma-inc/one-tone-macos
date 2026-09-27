@@ -8,7 +8,6 @@
 import AVFoundation
 
 class AudioManager: ObservableObject {
-    private static let amplitude: Float = 0.5
     /// 出力デバイスが無くサンプルレートが取れない環境向けのフォールバック
     private static let fallbackSampleRate: Double = 44100
 
@@ -17,11 +16,14 @@ class AudioManager: ObservableObject {
     /// Play / Stop ボタンの活性制御に使うため、UI から購読できるようにする
     @Published private(set) var isPlaying: Bool = false
     var currentFrequency: Double = 20.0
+    /// 0...1。以前の固定振幅と同じ 0.5 を初期値にする
+    var currentVolume: Double = 0.5
 
     // レンダーブロックはリアルタイムスレッドで動き、ロックやメモリ確保ができない。
     // そのため状態は init で確保したポインタに置き、メインスレッドは値の書き込みだけを行う
     private let synthesizer: UnsafeMutablePointer<ToneSynthesizer>
     private let targetFrequency: UnsafeMutablePointer<Double>
+    private let targetVolume: UnsafeMutablePointer<Double>
     private let isRendering: UnsafeMutablePointer<Bool>
 
     init() {
@@ -35,19 +37,25 @@ class AudioManager: ObservableObject {
         let sampleRate = outputSampleRate > 0 ? outputSampleRate : Self.fallbackSampleRate
 
         synthesizer = .allocate(capacity: 1)
-        synthesizer.initialize(to: ToneSynthesizer(sampleRate: sampleRate, frequency: currentFrequency))
+        synthesizer.initialize(to: ToneSynthesizer(sampleRate: sampleRate, frequency: currentFrequency, volume: currentVolume))
         targetFrequency = .allocate(capacity: 1)
         targetFrequency.initialize(to: currentFrequency)
+        targetVolume = .allocate(capacity: 1)
+        targetVolume.initialize(to: currentVolume)
         isRendering = .allocate(capacity: 1)
         isRendering.initialize(to: false)
 
         let synthesizer = synthesizer
         let targetFrequency = targetFrequency
+        let targetVolume = targetVolume
         let isRendering = isRendering
-        let amplitude = Self.amplitude
         sourceNode = AVAudioSourceNode { isSilence, _, frameCount, audioBufferList -> OSStatus in
             let buffers = UnsafeMutableAudioBufferListPointer(audioBufferList)
-            synthesizer.pointee.update(frequency: targetFrequency.pointee, isPlaying: isRendering.pointee)
+            synthesizer.pointee.update(
+                frequency: targetFrequency.pointee,
+                volume: targetVolume.pointee,
+                isPlaying: isRendering.pointee
+            )
             // 停止後もフェードアウトが終わるまでは生成を続け、無音になってから止める
             guard !synthesizer.pointee.isSilent else {
                 for buffer in buffers {
@@ -57,7 +65,7 @@ class AudioManager: ObservableObject {
                 return noErr
             }
             for frame in 0..<Int(frameCount) {
-                let sample = synthesizer.pointee.nextSample() * amplitude
+                let sample = synthesizer.pointee.nextSample()
                 // 出力チャンネル数はデバイスによって変わるため、決め打ちにせず実際の数だけ書き込む
                 for buffer in buffers {
                     buffer.mData?.assumingMemoryBound(to: Float.self)[frame] = sample
@@ -81,6 +89,7 @@ class AudioManager: ObservableObject {
         audioEngine.stop()
         synthesizer.deallocate()
         targetFrequency.deallocate()
+        targetVolume.deallocate()
         isRendering.deallocate()
     }
 
@@ -109,6 +118,12 @@ class AudioManager: ObservableObject {
     func updateFrequency(_ frequency: Double) {
         currentFrequency = frequency
         targetFrequency.pointee = frequency
+    }
+
+    /// 0...1 の音量。再生中も数 ms かけて即座に反映する
+    func updateVolume(_ volume: Double) {
+        currentVolume = volume
+        targetVolume.pointee = volume
     }
 
     func stopTone() {
@@ -168,18 +183,20 @@ struct ParameterSmoother {
 /// 周波数の補間と再生開始・停止時のフェードを含めて、出力サンプルを 1 つずつ作る。
 /// レンダーブロックから呼ぶため、メモリ確保をしない値型にしている。
 struct ToneSynthesizer {
-    /// 周波数とフェードの振幅を目標値へ寄せる時定数。数 ms で追従し、段差によるクリックノイズを出さない
+    /// 周波数・音量・フェードの振幅を目標値へ寄せる時定数。数 ms で追従し、段差によるクリックノイズを出さない
     static let smoothingTime: Double = 0.005
     /// フェードアウト後、この振幅を下回ったら無音とみなす（約 -80dB）
     static let silenceThreshold: Double = 0.0001
 
     private(set) var generator: ToneGenerator
     private var frequency: ParameterSmoother
+    private var volume: ParameterSmoother
     private var gain: ParameterSmoother
 
-    init(sampleRate: Double, frequency: Double) {
+    init(sampleRate: Double, frequency: Double, volume: Double) {
         generator = ToneGenerator(sampleRate: sampleRate, frequency: frequency)
         self.frequency = ParameterSmoother(value: frequency, sampleRate: sampleRate, timeConstant: Self.smoothingTime)
+        self.volume = ParameterSmoother(value: volume, sampleRate: sampleRate, timeConstant: Self.smoothingTime)
         gain = ParameterSmoother(value: 0, sampleRate: sampleRate, timeConstant: Self.smoothingTime)
     }
 
@@ -188,12 +205,16 @@ struct ToneSynthesizer {
         gain.target == 0 && gain.current < Self.silenceThreshold
     }
 
-    mutating func update(frequency newFrequency: Double, isPlaying: Bool) {
+    /// - Parameter newVolume: 0...1 の音量。範囲外は丸める
+    mutating func update(frequency newFrequency: Double, volume newVolume: Double, isPlaying: Bool) {
+        let clampedVolume = min(max(newVolume, 0), 1)
         if gain.current < Self.silenceThreshold {
-            // 無音から鳴らし始めるときは、前回の周波数から滑らせず目標の周波数でそのまま始める
+            // 無音から鳴らし始めるときは、前回の値から滑らせず目標の周波数・音量でそのまま始める
             frequency.snap(to: newFrequency)
+            volume.snap(to: clampedVolume)
         } else {
             frequency.target = newFrequency
+            volume.target = clampedVolume
         }
         if !isPlaying && isSilent {
             gain.snap(to: 0)
@@ -204,7 +225,7 @@ struct ToneSynthesizer {
     /// 振幅 1 を上限としたサンプルを返す
     mutating func nextSample() -> Float {
         generator.frequency = frequency.next()
-        let currentGain = gain.next()
+        let currentGain = gain.next() * volume.next()
         return generator.nextSample() * Float(currentGain)
     }
 }
