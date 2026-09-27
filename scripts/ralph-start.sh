@@ -26,6 +26,15 @@ if [[ -n "$LEFTOVER" ]]; then
   exit 1
 fi
 
+# goal のプレースホルダは {{日本語タイトル}} のように英大文字に限らないため、中身を問わず検出する。
+# 残したまま起動すると、仮のタスク名で Issue と PR が作られてしまう
+GOAL_LEFTOVER=$(grep -o '{{[^}]*}}' "$GOAL" | sort -u || true)
+if [[ -n "$GOAL_LEFTOVER" ]]; then
+  echo "$GOAL に未置換のプレースホルダが残っています:" >&2
+  echo "$GOAL_LEFTOVER" >&2
+  exit 1
+fi
+
 TASKS=$(grep -c '^- \[ \]' "$GOAL" || true)
 [[ "$TASKS" -gt 0 ]] || { echo "$GOAL に未完了タスクがありません" >&2; exit 1; }
 
