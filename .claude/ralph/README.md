@@ -39,14 +39,14 @@ scripts/
 ## 使い方
 
 ```bash
-# 1. worktree と統合ブランチを用意
-scripts/ralph-setup.sh
+# 1. worktree と統合ブランチを用意（統合ブランチは epic/[機能名] 形式で必須）
+scripts/ralph-setup.sh epic/<機能名>
 
 # 2. 制御用 worktree の playbook と goal を埋める
 #    playbook の {{...}} をすべて置換し、「このアプリ固有の前提」を書く
 
 # 3. 統合ブランチを push
-cd ../<repo>-ralph-ctl && git push -u origin ralph/integration
+cd ../<repo>-ralph-ctl && git push -u origin epic/<機能名>
 
 # 4. ループ開始（state ファイルを生成）
 ../<repo>/scripts/ralph-start.sh "PHASE1 DONE"
@@ -57,6 +57,10 @@ claude --add-dir ../<repo>-ralph-a --add-dir ../<repo>-ralph-b \
 ```
 
 停止は `scripts/ralph-stop.sh`。worktree ごと消すなら `--worktrees`。
+
+**ループ実行中は、制御用 worktree で別の Claude Code セッションを起動しない。**
+`session_id` を空にしているため Stop hook はセッションを照合せず、同じ worktree で終了した
+別のセッションにもループのプロンプトが注入される（理由は「設計上の要点」を参照）。
 
 ### テンプレートを更新したとき
 
