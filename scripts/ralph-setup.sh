@@ -59,6 +59,14 @@ add_worktree() { # $1=パス $2=追加オプション
   fi
 }
 add_worktree "$CTL"
+# 制御用 worktree のパスは epic によらず固定のため、別の epic で再実行すると
+# 前の統合ブランチと goal / playbook をそのまま再利用してしまう。食い違えば止める。
+CTL_BRANCH=$(git -C "$CTL" symbolic-ref --quiet --short HEAD || true)
+if [[ "$CTL_BRANCH" != "$INTEGRATION" ]]; then
+  echo "エラー: 制御用 worktree $CTL は ${CTL_BRANCH:-(detached)} を checkout しています（指定: $INTEGRATION）" >&2
+  echo "      前の epic の後片付け（scripts/ralph-stop.sh --worktrees と制御用 worktree の削除）をしてから再実行してください" >&2
+  exit 1
+fi
 add_worktree "$SLOT_A" --detach
 add_worktree "$SLOT_B" --detach
 
@@ -95,6 +103,15 @@ elif [[ ! -f "$CTL/.claude/settings.json" ]]; then
   cp .claude/ralph/settings.deny.example.json "$CTL/.claude/settings.json"
   grep -qxF '.claude/settings.json' "$EXCLUDE" 2>/dev/null \
     || echo '.claude/settings.json' >> "$EXCLUDE"
+fi
+# 既存の settings.json はコピーしないため、deny が欠けたまま bypassPermissions で
+# 起動しうる。テンプレートの deny がすべて含まれているかを確かめる。
+DENY_MISSING=$(grep -oE '"Bash\([^"]+\)"' .claude/ralph/settings.deny.example.json \
+  | while read -r rule; do grep -qF "$rule" "$CTL/.claude/settings.json" 2>/dev/null || echo "$rule"; done)
+if [[ -n "$DENY_MISSING" ]]; then
+  echo "エラー: $CTL/.claude/settings.json に次の deny がありません。統合してから再実行してください:" >&2
+  echo "$DENY_MISSING" | sed 's/^/      /' >&2
+  exit 1
 fi
 
 # CLAUDE.md は毎セッション読み込まれる唯一の入口。ポインタが無いと、
