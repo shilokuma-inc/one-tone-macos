@@ -24,19 +24,16 @@ final class OneToneTests: XCTestCase {
         XCTAssertFalse(manager.isPlaying)
     }
 
-    func testStopToneResetsIsPlaying() throws {
+    func testStopToneResetsIsPlaying() {
         let manager = AudioManager()
-        // 出力デバイスが無い環境ではエンジンが起動せず、play() が例外で落ちるためスキップする
-        try XCTSkipUnless(manager.audioEngine.isRunning, "AVAudioEngine が起動していない環境")
         manager.playTone(frequency: 440)
         XCTAssertTrue(manager.isPlaying)
         manager.stopTone()
         XCTAssertFalse(manager.isPlaying)
     }
 
-    func testUpdateFrequencyAfterStopDoesNotRestartPlayback() throws {
+    func testUpdateFrequencyAfterStopDoesNotRestartPlayback() {
         let manager = AudioManager()
-        try XCTSkipUnless(manager.audioEngine.isRunning, "AVAudioEngine が起動していない環境")
         manager.playTone(frequency: 440)
         manager.stopTone()
         manager.updateFrequency(1000)
