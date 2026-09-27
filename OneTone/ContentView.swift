@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var audioManager = AudioManager()
     @State private var frequency: Double = 20.0
+    @State private var volume: Double = 0.5
     @State private var hue: Double = 0
     
     var body: some View {
@@ -89,6 +90,22 @@ struct ContentView: View {
             .padding()
             
             Text("Frequency: \(Int(frequency)) Hz")
+                .padding()
+            
+            Slider(value: Binding<Double>(
+                get: {
+                    volume
+                },
+                set: { newValue in
+                    volume = newValue
+                    audioManager.updateVolume(volume)
+                }
+            ), in: 0...1) {
+                Text("Volume")
+            }
+            .padding()
+            
+            Text("Volume: \(Int((volume * 100).rounded()))%")
                 .padding()
             
             Spacer()
