@@ -8,20 +8,66 @@
 import AVFoundation
 
 class AudioManager: ObservableObject {
-    var audioEngine: AVAudioEngine
-    var audioPlayerNode: AVAudioPlayerNode
-    var timer: Timer?
+    private static let amplitude: Float = 0.5
+    /// 出力デバイスが無くサンプルレートが取れない環境向けのフォールバック
+    private static let fallbackSampleRate: Double = 44100
+
+    let audioEngine: AVAudioEngine
+    private let sourceNode: AVAudioSourceNode
     /// Play / Stop ボタンの活性制御に使うため、UI から購読できるようにする
     @Published private(set) var isPlaying: Bool = false
     var currentFrequency: Double = 20.0
 
+    // レンダーブロックはリアルタイムスレッドで動き、ロックやメモリ確保ができない。
+    // そのため状態は init で確保したポインタに置き、メインスレッドは値の書き込みだけを行う
+    private let generator: UnsafeMutablePointer<ToneGenerator>
+    private let targetFrequency: UnsafeMutablePointer<Double>
+    private let isRendering: UnsafeMutablePointer<Bool>
+
     init() {
+        // セッションを有効にしてから出力フォーマットを読まないと、iOS でサンプルレートが確定しない
+        Self.configureAudioSession()
         audioEngine = AVAudioEngine()
-        audioPlayerNode = AVAudioPlayerNode()
-        audioEngine.attach(audioPlayerNode)
-        let mainMixer = audioEngine.mainMixerNode
-        audioEngine.connect(audioPlayerNode, to: mainMixer, format: nil)
-        configureAudioSession()
+
+        // サンプルレートは 44.1kHz 固定ではなく実際の出力に合わせる。
+        // iOS は 48kHz が既定のため、固定値のままだと出力される周波数が指定値からずれる
+        let outputSampleRate = audioEngine.outputNode.outputFormat(forBus: 0).sampleRate
+        let sampleRate = outputSampleRate > 0 ? outputSampleRate : Self.fallbackSampleRate
+
+        generator = .allocate(capacity: 1)
+        generator.initialize(to: ToneGenerator(sampleRate: sampleRate, frequency: currentFrequency))
+        targetFrequency = .allocate(capacity: 1)
+        targetFrequency.initialize(to: currentFrequency)
+        isRendering = .allocate(capacity: 1)
+        isRendering.initialize(to: false)
+
+        let generator = generator
+        let targetFrequency = targetFrequency
+        let isRendering = isRendering
+        let amplitude = Self.amplitude
+        sourceNode = AVAudioSourceNode { isSilence, _, frameCount, audioBufferList -> OSStatus in
+            let buffers = UnsafeMutableAudioBufferListPointer(audioBufferList)
+            guard isRendering.pointee else {
+                for buffer in buffers {
+                    memset(buffer.mData, 0, Int(buffer.mDataByteSize))
+                }
+                isSilence.pointee = true
+                return noErr
+            }
+            generator.pointee.frequency = targetFrequency.pointee
+            for frame in 0..<Int(frameCount) {
+                let sample = generator.pointee.nextSample() * amplitude
+                // 出力チャンネル数はデバイスによって変わるため、決め打ちにせず実際の数だけ書き込む
+                for buffer in buffers {
+                    buffer.mData?.assumingMemoryBound(to: Float.self)[frame] = sample
+                }
+            }
+            return noErr
+        }
+
+        let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)
+        audioEngine.attach(sourceNode)
+        audioEngine.connect(sourceNode, to: audioEngine.mainMixerNode, format: format)
         do {
             try audioEngine.start()
         } catch {
@@ -29,10 +75,18 @@ class AudioManager: ObservableObject {
         }
     }
 
+    deinit {
+        // レンダーブロックがポインタを参照しなくなってから解放する
+        audioEngine.stop()
+        generator.deallocate()
+        targetFrequency.deallocate()
+        isRendering.deallocate()
+    }
+
     /// iOS はオーディオセッションのカテゴリを指定しないと、既定の .soloAmbient になり
     /// サイレントスイッチや画面ロックで音が止まってしまうため .playback を明示する。
     /// macOS には AVAudioSession が無いので何もしない。
-    private func configureAudioSession() {
+    private static func configureAudioSession() {
         #if os(iOS)
         do {
             let session = AVAudioSession.sharedInstance()
@@ -44,44 +98,21 @@ class AudioManager: ObservableObject {
         #endif
     }
 
-    func playTone(frequency: Double, duration: Double = 5.0) {
-        let format = audioPlayerNode.outputFormat(forBus: 0)
-        // サンプルレートは 44.1kHz 固定ではなく実際の出力に合わせる。
-        // iOS は 48kHz が既定のため、固定値のままだと出力される周波数が指定値からずれる
-        let sampleRate = format.sampleRate
-        let amplitude: Float = 0.5
-        let frameCount = AVAudioFrameCount(sampleRate * duration)
-        guard sampleRate > 0, let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount),
-              let channels = buffer.floatChannelData else { return }
-
-        for i in 0..<Int(frameCount) {
-            let sample = Float(sin(2.0 * Double.pi * frequency * Double(i) / sampleRate)) * amplitude
-            // 出力チャンネル数はデバイスによって変わるため、2ch 決め打ちにせず実際の数だけ書き込む
-            for channel in 0..<Int(format.channelCount) {
-                channels[channel][i] = sample
-            }
-        }
-        buffer.frameLength = frameCount
+    func playTone(frequency: Double) {
+        updateFrequency(frequency)
+        isRendering.pointee = true
         isPlaying = true
-        currentFrequency = frequency
-
-        audioPlayerNode.stop()
-        audioPlayerNode.scheduleBuffer(buffer, at: nil, options: .loops, completionHandler: nil)
-        audioPlayerNode.play()
     }
 
+    /// 再生中でも停止中でも呼んでよい。再生中は次のレンダー周期から位相を保ったまま新しい周波数になる
     func updateFrequency(_ frequency: Double) {
-        self.currentFrequency = frequency
-        if isPlaying {
-            playTone(frequency: currentFrequency, duration: 5)
-        }
+        currentFrequency = frequency
+        targetFrequency.pointee = frequency
     }
 
     func stopTone() {
-        audioPlayerNode.stop()
+        isRendering.pointee = false
         isPlaying = false
-        timer?.invalidate()
-        timer = nil
     }
 }
 
