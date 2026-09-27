@@ -11,6 +11,7 @@ struct ContentView: View {
     @StateObject private var audioManager = AudioManager()
     @State private var frequency: Double = 20.0
     @State private var volume: Double = 0.5
+    @State private var waveform: Waveform = .sine
     @State private var hue: Double = 0
     
     var body: some View {
@@ -107,6 +108,22 @@ struct ContentView: View {
             
             Text("Volume: \(Int((volume * 100).rounded()))%")
                 .padding()
+            
+            Picker("Waveform", selection: Binding<Waveform>(
+                get: {
+                    waveform
+                },
+                set: { newValue in
+                    waveform = newValue
+                    audioManager.updateWaveform(waveform)
+                }
+            )) {
+                ForEach(Waveform.allCases) { waveform in
+                    Text(waveform.displayName).tag(waveform)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding()
             
             Spacer()
         }

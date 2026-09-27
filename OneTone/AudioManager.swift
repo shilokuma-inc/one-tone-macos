@@ -18,12 +18,14 @@ class AudioManager: ObservableObject {
     var currentFrequency: Double = 20.0
     /// 0...1。以前の固定振幅と同じ 0.5 を初期値にする
     var currentVolume: Double = 0.5
+    var currentWaveform: Waveform = .sine
 
     // レンダーブロックはリアルタイムスレッドで動き、ロックやメモリ確保ができない。
     // そのため状態は init で確保したポインタに置き、メインスレッドは値の書き込みだけを行う
     private let synthesizer: UnsafeMutablePointer<ToneSynthesizer>
     private let targetFrequency: UnsafeMutablePointer<Double>
     private let targetVolume: UnsafeMutablePointer<Double>
+    private let targetWaveform: UnsafeMutablePointer<Waveform>
     private let isRendering: UnsafeMutablePointer<Bool>
 
     init() {
@@ -37,23 +39,27 @@ class AudioManager: ObservableObject {
         let sampleRate = outputSampleRate > 0 ? outputSampleRate : Self.fallbackSampleRate
 
         synthesizer = .allocate(capacity: 1)
-        synthesizer.initialize(to: ToneSynthesizer(sampleRate: sampleRate, frequency: currentFrequency, volume: currentVolume))
+        synthesizer.initialize(to: ToneSynthesizer(sampleRate: sampleRate, frequency: currentFrequency, volume: currentVolume, waveform: currentWaveform))
         targetFrequency = .allocate(capacity: 1)
         targetFrequency.initialize(to: currentFrequency)
         targetVolume = .allocate(capacity: 1)
         targetVolume.initialize(to: currentVolume)
+        targetWaveform = .allocate(capacity: 1)
+        targetWaveform.initialize(to: currentWaveform)
         isRendering = .allocate(capacity: 1)
         isRendering.initialize(to: false)
 
         let synthesizer = synthesizer
         let targetFrequency = targetFrequency
         let targetVolume = targetVolume
+        let targetWaveform = targetWaveform
         let isRendering = isRendering
         sourceNode = AVAudioSourceNode { isSilence, _, frameCount, audioBufferList -> OSStatus in
             let buffers = UnsafeMutableAudioBufferListPointer(audioBufferList)
             synthesizer.pointee.update(
                 frequency: targetFrequency.pointee,
                 volume: targetVolume.pointee,
+                waveform: targetWaveform.pointee,
                 isPlaying: isRendering.pointee
             )
             // 停止後もフェードアウトが終わるまでは生成を続け、無音になってから止める
@@ -90,6 +96,7 @@ class AudioManager: ObservableObject {
         synthesizer.deallocate()
         targetFrequency.deallocate()
         targetVolume.deallocate()
+        targetWaveform.deallocate()
         isRendering.deallocate()
     }
 
@@ -126,6 +133,12 @@ class AudioManager: ObservableObject {
         targetVolume.pointee = volume
     }
 
+    /// 再生中も途切れずに、数 ms のクロスフェードで新しい波形へ切り替える
+    func updateWaveform(_ waveform: Waveform) {
+        currentWaveform = waveform
+        targetWaveform.pointee = waveform
+    }
+
     func stopTone() {
         isRendering.pointee = false
         isPlaying = false
@@ -146,11 +159,56 @@ struct ToneGenerator {
     }
 
     mutating func nextSample() -> Float {
-        let sample = Float(sin(2.0 * Double.pi * phase))
+        Float(Waveform.sine.value(at: advance()))
+    }
+
+    /// 現在の位相を返し、1 サンプル分進める
+    mutating func advance() -> Double {
+        let current = phase
         phase += frequency / sampleRate
         // 長時間再生しても精度が落ちないよう、整数部を捨てて 0..<1 に保つ
         phase -= floor(phase)
-        return sample
+        return current
+    }
+}
+
+/// 出力する波形。位相 0 で 0 から立ち上がるよう、すべての波形の位相をサイン波にそろえている
+enum Waveform: UInt8, CaseIterable, Identifiable {
+    case sine
+    case square
+    case triangle
+    case sawtooth
+
+    var id: Self { self }
+
+    var displayName: String {
+        switch self {
+        case .sine: return "Sine"
+        case .square: return "Square"
+        case .triangle: return "Triangle"
+        case .sawtooth: return "Sawtooth"
+        }
+    }
+
+    /// - Parameter phase: 1 周期を 0..<1 に正規化した位相
+    /// - Returns: -1...1 のサンプル値
+    func value(at phase: Double) -> Double {
+        switch self {
+        case .sine:
+            return sin(2.0 * Double.pi * phase)
+        case .square:
+            return phase < 0.5 ? 1 : -1
+        case .triangle:
+            if phase < 0.25 {
+                return 4 * phase
+            } else if phase < 0.75 {
+                return 2 - 4 * phase
+            } else {
+                return 4 * phase - 4
+            }
+        case .sawtooth:
+            return phase < 0.5 ? 2 * phase : 2 * phase - 2
+        }
     }
 }
 
@@ -183,7 +241,7 @@ struct ParameterSmoother {
 /// 周波数の補間と再生開始・停止時のフェードを含めて、出力サンプルを 1 つずつ作る。
 /// レンダーブロックから呼ぶため、メモリ確保をしない値型にしている。
 struct ToneSynthesizer {
-    /// 周波数・音量・フェードの振幅を目標値へ寄せる時定数。数 ms で追従し、段差によるクリックノイズを出さない
+    /// 周波数・音量・フェードの振幅・波形のクロスフェードを目標値へ寄せる時定数。数 ms で追従し、段差によるクリックノイズを出さない
     static let smoothingTime: Double = 0.005
     /// フェードアウト後、この振幅を下回ったら無音とみなす（約 -80dB）
     static let silenceThreshold: Double = 0.0001
@@ -192,12 +250,20 @@ struct ToneSynthesizer {
     private var frequency: ParameterSmoother
     private var volume: ParameterSmoother
     private var gain: ParameterSmoother
+    private(set) var waveform: Waveform
+    /// 切り替え前の波形。`crossfade` が 0 のときはこちらだけが鳴る
+    private var previousWaveform: Waveform
+    /// 0 で `previousWaveform`、1 で `waveform`。波形を切り替えた瞬間の段差をなくすため数 ms かけて移る
+    private var crossfade: ParameterSmoother
 
-    init(sampleRate: Double, frequency: Double, volume: Double) {
+    init(sampleRate: Double, frequency: Double, volume: Double, waveform: Waveform) {
         generator = ToneGenerator(sampleRate: sampleRate, frequency: frequency)
         self.frequency = ParameterSmoother(value: frequency, sampleRate: sampleRate, timeConstant: Self.smoothingTime)
         self.volume = ParameterSmoother(value: volume, sampleRate: sampleRate, timeConstant: Self.smoothingTime)
         gain = ParameterSmoother(value: 0, sampleRate: sampleRate, timeConstant: Self.smoothingTime)
+        self.waveform = waveform
+        previousWaveform = waveform
+        crossfade = ParameterSmoother(value: 1, sampleRate: sampleRate, timeConstant: Self.smoothingTime)
     }
 
     /// フェードアウトが終わり、出力が無音になっているか
@@ -206,15 +272,29 @@ struct ToneSynthesizer {
     }
 
     /// - Parameter newVolume: 0...1 の音量。範囲外は丸める
-    mutating func update(frequency newFrequency: Double, volume newVolume: Double, isPlaying: Bool) {
+    mutating func update(
+        frequency newFrequency: Double,
+        volume newVolume: Double,
+        waveform newWaveform: Waveform,
+        isPlaying: Bool
+    ) {
         let clampedVolume = min(max(newVolume, 0), 1)
         if gain.current < Self.silenceThreshold {
-            // 無音から鳴らし始めるときは、前回の値から滑らせず目標の周波数・音量でそのまま始める
+            // 無音から鳴らし始めるときは、前回の値から滑らせず目標の周波数・音量・波形でそのまま始める
             frequency.snap(to: newFrequency)
             volume.snap(to: clampedVolume)
+            waveform = newWaveform
+            previousWaveform = newWaveform
+            crossfade.snap(to: 1)
         } else {
             frequency.target = newFrequency
             volume.target = clampedVolume
+            if newWaveform != waveform {
+                previousWaveform = waveform
+                waveform = newWaveform
+                crossfade.snap(to: 0)
+                crossfade.target = 1
+            }
         }
         if !isPlaying && isSilent {
             gain.snap(to: 0)
@@ -225,7 +305,10 @@ struct ToneSynthesizer {
     /// 振幅 1 を上限としたサンプルを返す
     mutating func nextSample() -> Float {
         generator.frequency = frequency.next()
+        let phase = generator.advance()
+        let mix = crossfade.next()
+        let value = previousWaveform.value(at: phase) * (1 - mix) + waveform.value(at: phase) * mix
         let currentGain = gain.next() * volume.next()
-        return generator.nextSample() * Float(currentGain)
+        return Float(value * currentGain)
     }
 }
