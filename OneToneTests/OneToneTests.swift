@@ -267,4 +267,85 @@ final class OneToneTests: XCTestCase {
         manager.updateVolume(0.8)
         XCTAssertEqual(manager.currentVolume, 0.8)
     }
+    // MARK: - Waveform
+
+    func testWaveformValuesAtKeyPhases() {
+        let phases = [0, 0.25, 0.5, 0.75]
+        let expected: [Waveform: [Double]] = [
+            .sine: [0, 1, 0, -1],
+            .square: [1, 1, -1, -1],
+            .triangle: [0, 1, 0, -1],
+            .sawtooth: [0, 0.5, -1, -0.5],
+        ]
+        for (waveform, values) in expected {
+            for (phase, value) in zip(phases, values) {
+                XCTAssertEqual(waveform.value(at: phase), value, accuracy: 1e-9, "\(waveform) @ \(phase)")
+            }
+        }
+    }
+
+    func testWaveformValuesStayInRange() {
+        for waveform in Waveform.allCases {
+            for step in 0..<1000 {
+                let value = waveform.value(at: Double(step) / 1000)
+                XCTAssertLessThanOrEqual(abs(value), 1, "\(waveform)")
+            }
+        }
+    }
+
+    func testTriangleWaveIsContinuous() {
+        // 三角波は周期の境目（1 → 0）も含めて段差が無い
+        var previous = Waveform.triangle.value(at: 0.999)
+        for step in 0..<1000 {
+            let value = Waveform.triangle.value(at: Double(step) / 1000)
+            XCTAssertLessThanOrEqual(abs(value - previous), 0.004 + 1e-9)
+            previous = value
+        }
+    }
+
+    // MARK: - ToneSynthesizer（波形）
+
+    func testSynthesizerCrossfadesWaveformWithoutJump() {
+        var synthesizer = ToneSynthesizer(sampleRate: 48000, frequency: 440, volume: 1, waveform: .sine)
+        synthesizer.update(frequency: 440, volume: 1, waveform: .sine, isPlaying: true)
+        for _ in 0..<4800 {
+            _ = synthesizer.nextSample()
+        }
+        // サイン波が 0 付近を通る位置で矩形波（±1）へ切り替えても、いきなり ±1 に飛ばない
+        var previous = synthesizer.nextSample()
+        while abs(previous) > 0.05 {
+            previous = synthesizer.nextSample()
+        }
+        synthesizer.update(frequency: 440, volume: 1, waveform: .square, isPlaying: true)
+        XCTAssertEqual(synthesizer.waveform, .square)
+        let next = synthesizer.nextSample()
+        XCTAssertLessThan(abs(next - previous), 0.1)
+
+        // クロスフェードが終われば矩形波そのものになる
+        for _ in 0..<4800 {
+            _ = synthesizer.nextSample()
+        }
+        for _ in 0..<109 {
+            XCTAssertEqual(abs(synthesizer.nextSample()), 1, accuracy: 0.001)
+        }
+    }
+
+    func testSynthesizerStartsWithSelectedWaveformFromSilence() {
+        var synthesizer = ToneSynthesizer(sampleRate: 48000, frequency: 440, volume: 1, waveform: .sine)
+        // 停止中に選び直した波形は、クロスフェードせずにそのまま鳴り始める
+        synthesizer.update(frequency: 440, volume: 1, waveform: .square, isPlaying: true)
+        for _ in 0..<4800 {
+            _ = synthesizer.nextSample()
+        }
+        for _ in 0..<109 {
+            XCTAssertEqual(abs(synthesizer.nextSample()), 1, accuracy: 0.001)
+        }
+    }
+
+    func testUpdateWaveformKeepsCurrentWaveform() {
+        let manager = AudioManager()
+        XCTAssertEqual(manager.currentWaveform, .sine)
+        manager.updateWaveform(.triangle)
+        XCTAssertEqual(manager.currentWaveform, .triangle)
+    }
 }
