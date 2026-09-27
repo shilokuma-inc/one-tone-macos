@@ -217,4 +217,54 @@ final class OneToneTests: XCTestCase {
             previous = sample
         }
     }
+    func testSynthesizerScalesOutputByVolume() {
+        var synthesizer = ToneSynthesizer(sampleRate: 48000, frequency: 440, volume: 0.25)
+        synthesizer.update(frequency: 440, volume: 0.25, isPlaying: true)
+        for _ in 0..<4800 {
+            _ = synthesizer.nextSample()
+        }
+        let peak = (0..<109).map { _ in abs(synthesizer.nextSample()) }.max()!
+        XCTAssertEqual(peak, 0.25, accuracy: 0.005)
+    }
+
+    func testSynthesizerAppliesVolumeChangeWhilePlayingSmoothly() {
+        let sampleRate = 48000.0
+        var synthesizer = ToneSynthesizer(sampleRate: sampleRate, frequency: 440, volume: 1)
+        synthesizer.update(frequency: 440, volume: 1, isPlaying: true)
+        for _ in 0..<4800 {
+            _ = synthesizer.nextSample()
+        }
+        // 再生中に音量を下げると、段差を出さずに新しい音量へ移る
+        synthesizer.update(frequency: 440, volume: 0.1, isPlaying: true)
+        let maxStep = Float(2 * Double.pi * 440 / sampleRate) + 1e-3
+        var previous = synthesizer.nextSample()
+        for _ in 0..<4800 {
+            let sample = synthesizer.nextSample()
+            XCTAssertLessThanOrEqual(abs(sample - previous), maxStep)
+            previous = sample
+        }
+        let peak = (0..<109).map { _ in abs(synthesizer.nextSample()) }.max()!
+        XCTAssertEqual(peak, 0.1, accuracy: 0.005)
+    }
+
+    func testSynthesizerClampsVolumeToValidRange() {
+        var synthesizer = ToneSynthesizer(sampleRate: 48000, frequency: 440, volume: 1)
+        synthesizer.update(frequency: 440, volume: 3, isPlaying: true)
+        for _ in 0..<4800 {
+            XCTAssertLessThanOrEqual(abs(synthesizer.nextSample()), 1)
+        }
+
+        var muted = ToneSynthesizer(sampleRate: 48000, frequency: 440, volume: 1)
+        muted.update(frequency: 440, volume: -1, isPlaying: true)
+        for _ in 0..<480 {
+            XCTAssertEqual(muted.nextSample(), 0)
+        }
+    }
+
+    func testUpdateVolumeKeepsCurrentVolume() {
+        let manager = AudioManager()
+        XCTAssertEqual(manager.currentVolume, 0.5)
+        manager.updateVolume(0.8)
+        XCTAssertEqual(manager.currentVolume, 0.8)
+    }
 }
