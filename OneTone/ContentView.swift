@@ -80,6 +80,8 @@ struct ContentView: View {
                 },
                 set: { newValue in
                     frequency = pow(10, newValue)
+                    // 再生中のトーンにもスライダーの値をそのまま追従させる
+                    audioManager.updateFrequency(frequency)
                 }
             ), in: log10(20)...log10(20000), step: 0.02) {
                 Text("Frequency")
