@@ -18,19 +18,30 @@ final class OneToneTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    func testStopToneWithoutPlayingKeepsIsPlayingFalse() {
+        let manager = AudioManager()
+        manager.stopTone()
+        XCTAssertFalse(manager.isPlaying)
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    func testStopToneResetsIsPlaying() throws {
+        let manager = AudioManager()
+        // 出力デバイスが無い環境ではエンジンが起動せず、play() が例外で落ちるためスキップする
+        try XCTSkipUnless(manager.audioEngine.isRunning, "AVAudioEngine が起動していない環境")
+        manager.playTone(frequency: 440, duration: 0.1)
+        XCTAssertTrue(manager.isPlaying)
+        manager.stopTone()
+        XCTAssertFalse(manager.isPlaying)
+    }
+
+    func testUpdateFrequencyAfterStopDoesNotRestartPlayback() throws {
+        let manager = AudioManager()
+        try XCTSkipUnless(manager.audioEngine.isRunning, "AVAudioEngine が起動していない環境")
+        manager.playTone(frequency: 440, duration: 0.1)
+        manager.stopTone()
+        manager.updateFrequency(1000)
+        XCTAssertFalse(manager.isPlaying)
+        XCTAssertEqual(manager.currentFrequency, 1000)
     }
 
 }
