@@ -15,6 +15,12 @@
 		4F3564B92C04ED740015F5B5 /* OneToneUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F3564B82C04ED740015F5B5 /* OneToneUITests.swift */; };
 		4F3564BB2C04ED740015F5B5 /* OneToneUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F3564BA2C04ED740015F5B5 /* OneToneUITestsLaunchTests.swift */; };
 		4F3564C82C04F2110015F5B5 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F3564C72C04F2110015F5B5 /* AudioManager.swift */; };
+		7BB99970DCC99ACA4767B00E /* TitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45A8FADF45C3FC1276BA4C4 /* TitleView.swift */; };
+		F1D7555590C9E09C32231217 /* PlaybackControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845DEFE340AD8435DBE5E579 /* PlaybackControls.swift */; };
+		4B12240B8524B1F3459B0390 /* FrequencyControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA79D86B32324230989DFE6D /* FrequencyControls.swift */; };
+		A0EBB35CA758B162AA7E3614 /* FrequencyPresetButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473F5BAFBCEBC59D8915A390 /* FrequencyPresetButtons.swift */; };
+		3CED587896C10CC48032FB58 /* VolumeControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 021BD47CEE205813A718328A /* VolumeControl.swift */; };
+		481F0AD1F62F3F8054A85E76 /* WaveformPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A470FA42F175C2AACE62DA15 /* WaveformPicker.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +53,12 @@
 		4F3564B82C04ED740015F5B5 /* OneToneUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneToneUITests.swift; sourceTree = "<group>"; };
 		4F3564BA2C04ED740015F5B5 /* OneToneUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneToneUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		4F3564C72C04F2110015F5B5 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
+		A45A8FADF45C3FC1276BA4C4 /* TitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleView.swift; sourceTree = "<group>"; };
+		845DEFE340AD8435DBE5E579 /* PlaybackControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackControls.swift; sourceTree = "<group>"; };
+		FA79D86B32324230989DFE6D /* FrequencyControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequencyControls.swift; sourceTree = "<group>"; };
+		473F5BAFBCEBC59D8915A390 /* FrequencyPresetButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequencyPresetButtons.swift; sourceTree = "<group>"; };
+		021BD47CEE205813A718328A /* VolumeControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeControl.swift; sourceTree = "<group>"; };
+		A470FA42F175C2AACE62DA15 /* WaveformPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformPicker.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +109,12 @@
 		4F35649B2C04ED720015F5B5 /* OneTone */ = {
 			isa = PBXGroup;
 			children = (
+				A470FA42F175C2AACE62DA15 /* WaveformPicker.swift */,
+				021BD47CEE205813A718328A /* VolumeControl.swift */,
+				473F5BAFBCEBC59D8915A390 /* FrequencyPresetButtons.swift */,
+				FA79D86B32324230989DFE6D /* FrequencyControls.swift */,
+				845DEFE340AD8435DBE5E579 /* PlaybackControls.swift */,
+				A45A8FADF45C3FC1276BA4C4 /* TitleView.swift */,
 				4F35649C2C04ED720015F5B5 /* OneToneApp.swift */,
 				4F35649E2C04ED720015F5B5 /* ContentView.swift */,
 				4F3564C72C04F2110015F5B5 /* AudioManager.swift */,
@@ -262,6 +280,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				481F0AD1F62F3F8054A85E76 /* WaveformPicker.swift in Sources */,
+				3CED587896C10CC48032FB58 /* VolumeControl.swift in Sources */,
+				A0EBB35CA758B162AA7E3614 /* FrequencyPresetButtons.swift in Sources */,
+				4B12240B8524B1F3459B0390 /* FrequencyControls.swift in Sources */,
+				F1D7555590C9E09C32231217 /* PlaybackControls.swift in Sources */,
+				7BB99970DCC99ACA4767B00E /* TitleView.swift in Sources */,
 				4F3564C82C04F2110015F5B5 /* AudioManager.swift in Sources */,
 				4F35649F2C04ED720015F5B5 /* ContentView.swift in Sources */,
 				4F35649D2C04ED720015F5B5 /* OneToneApp.swift in Sources */,

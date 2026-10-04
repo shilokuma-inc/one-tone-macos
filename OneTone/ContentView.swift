@@ -13,140 +13,32 @@ struct ContentView: View {
     @State private var frequencyText: String = FrequencyInput.format(20.0)
     @State private var volume: Double = 0.5
     @State private var waveform: Waveform = .sine
-    @State private var hue: Double = 0
     
     var body: some View {
         VStack {
             Spacer()
             
-            Text("One Tone")
-                .foregroundColor(Color.white)
-                .font(.custom("Helvetica Neue", size: 60))
-                .fontWeight(.bold)
-                // iPhone の幅では 60pt のままだとタイトルが収まらないので縮小を許可する
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-                .overlay(
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color.red, Color.orange, Color.yellow, Color.green,
-                            Color.blue, Color.purple, Color.red
-                        ]),
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                    .mask(
-                        Text("One Tone")
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                    )
-                    .font(.custom("Helvetica Neue", size: 60))
-                    .fontWeight(.bold)
-                    .hueRotation(Angle(degrees: hue))
-                )
-                .onAppear {
-                    withAnimation(Animation.linear(duration: 1).repeatForever(autoreverses: false)) {
-                        hue = 360
-                    }
-                }
+            TitleView()
             
             Spacer()
             
-            HStack {
-                Button(action: {
-                    audioManager.playTone(frequency: frequency)
-                }) {
-                    Text("Play Tone")
-                        .padding()
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .disabled(audioManager.isPlaying)
-                
-                Button(action: {
-                    audioManager.stopTone()
-                }) {
-                    Text("Stop Tone")
-                        .padding()
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .disabled(!audioManager.isPlaying)
-            }
-            // iOS の既定のボタンは背景を持たないため、白文字のままではライトモードで読めない。
-            // 塗りつぶしスタイルを指定して macOS/iOS どちらでも視認できるようにする
-            .buttonStyle(.borderedProminent)
+            PlaybackControls(
+                isPlaying: audioManager.isPlaying,
+                onPlay: { audioManager.playTone(frequency: frequency) },
+                onStop: { audioManager.stopTone() }
+            )
             
-            Slider(value: Binding<Double>(
-                get: {
-                    log10(frequency)
-                },
-                set: { newValue in
-                    setFrequency(pow(10, newValue))
-                }
-            ), in: log10(20)...log10(20000), step: 0.02) {
-                Text("Frequency")
-            }
-            .padding()
+            FrequencySlider(frequency: frequency, onChange: setFrequency)
             
-            Text("Frequency: \(FrequencyInput.format(frequency)) Hz")
-                .padding()
+            FrequencyDisplay(frequency: frequency)
             
-            HStack {
-                TextField("Frequency", text: $frequencyText)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 100)
-                    #if os(iOS)
-                    // decimalPad には確定キーが無く onSubmit が呼べないため、確定キーのある数字キーボードにする
-                    .keyboardType(.numbersAndPunctuation)
-                    #endif
-                    .submitLabel(.done)
-                    .onSubmit(submitFrequencyText)
-                Text("Hz")
-            }
-            .textFieldStyle(.roundedBorder)
+            FrequencyTextField(text: $frequencyText, onSubmit: submitFrequencyText)
             
-            HStack {
-                ForEach(FrequencyInput.presets, id: \.self) { preset in
-                    Button(FrequencyInput.presetLabel(preset)) {
-                        setFrequency(preset)
-                    }
-                }
-            }
-            .buttonStyle(.bordered)
-            .padding()
+            FrequencyPresetButtons(onSelect: setFrequency)
             
-            Slider(value: Binding<Double>(
-                get: {
-                    volume
-                },
-                set: { newValue in
-                    volume = newValue
-                    audioManager.updateVolume(volume)
-                }
-            ), in: 0...1) {
-                Text("Volume")
-            }
-            .padding()
+            VolumeControl(volume: volume, onChange: setVolume)
             
-            Text("Volume: \(Int((volume * 100).rounded()))%")
-                .padding()
-            
-            Picker("Waveform", selection: Binding<Waveform>(
-                get: {
-                    waveform
-                },
-                set: { newValue in
-                    waveform = newValue
-                    audioManager.updateWaveform(waveform)
-                }
-            )) {
-                ForEach(Waveform.allCases) { waveform in
-                    Text(waveform.displayName).tag(waveform)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding()
+            WaveformPicker(waveform: waveform, onChange: setWaveform)
             
             Spacer()
         }
@@ -158,6 +50,16 @@ struct ContentView: View {
         frequency = newFrequency
         frequencyText = FrequencyInput.format(newFrequency)
         audioManager.updateFrequency(newFrequency)
+    }
+    
+    private func setVolume(_ newVolume: Double) {
+        volume = newVolume
+        audioManager.updateVolume(newVolume)
+    }
+    
+    private func setWaveform(_ newWaveform: Waveform) {
+        waveform = newWaveform
+        audioManager.updateWaveform(newWaveform)
     }
     
     /// 範囲外や数値でない入力は反映せず、入力欄を現在の周波数に戻す
