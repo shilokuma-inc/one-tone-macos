@@ -65,22 +65,25 @@ final class SampleRingBufferTests: XCTestCase {
     func testWriterOnAnotherThreadIsReadable() {
         // 書き込みと読み出しを別スレッドで同時に行っても、読み出し結果の長さと範囲が崩れないこと
         let buffer = SampleRingBuffer(capacity: 256)
-        defer { buffer.deallocate() }
         let total = 100_000
-        let done = expectation(description: "writer finished")
+        let writer = DispatchGroup()
+        writer.enter()
         DispatchQueue.global().async {
             for index in 0..<total {
                 buffer.write(Float(index % 2))
             }
-            done.fulfill()
+            writer.leave()
         }
         for _ in 0..<1000 {
             let samples = buffer.latest(128)
             XCTAssertLessThanOrEqual(samples.count, 128)
             XCTAssertTrue(samples.allSatisfy { $0 == 0 || $0 == 1 })
         }
-        wait(for: [done], timeout: 10)
+        XCTAssertEqual(writer.wait(timeout: .now() + 10), .success)
+        // タイムアウトしても、書き込み中の領域を解放しないよう書き込みの完了を待ってから解放する
+        writer.wait()
         XCTAssertEqual(buffer.totalWritten, total)
         XCTAssertEqual(buffer.latest(2).count, 2)
+        buffer.deallocate()
     }
 }
