@@ -384,6 +384,30 @@ final class OneToneTests: XCTestCase {
         }
     }
 
+    func testFaderMovesUpWhenDraggedUp() {
+        // 溝の長さだけ上へドラッグすると 0% から 100% になる
+        XCTAssertEqual(FaderMapping.volume(from: 0, dragHeight: -Double(FaderMapping.trackHeight)), 1, accuracy: 1e-9)
+        XCTAssertEqual(FaderMapping.volume(from: 0.5, dragHeight: -Double(FaderMapping.trackHeight) / 4), 0.75, accuracy: 1e-9)
+        XCTAssertEqual(FaderMapping.volume(from: 0.5, dragHeight: Double(FaderMapping.trackHeight) / 4), 0.25, accuracy: 1e-9)
+        // 動かさなければ始点のまま（掴んだ位置へ飛ばない）
+        XCTAssertEqual(FaderMapping.volume(from: 0.3, dragHeight: 0), 0.3, accuracy: 1e-9)
+    }
+
+    func testFaderStopsAtEnds() {
+        XCTAssertEqual(FaderMapping.volume(from: 0.9, dragHeight: -1000), 1)
+        XCTAssertEqual(FaderMapping.volume(from: 0.1, dragHeight: 1000), 0)
+        XCTAssertEqual(FaderMapping.clamped(1.2), 1)
+        XCTAssertEqual(FaderMapping.clamped(-0.2), 0)
+    }
+
+    func testFaderPercentMatchesPreviousVolumeLabel() {
+        // 以前の「Volume: 50%」表示と同じ四捨五入
+        XCTAssertEqual(FaderMapping.percent(for: 0.5), 50)
+        XCTAssertEqual(FaderMapping.percent(for: 0.004), 0)
+        XCTAssertEqual(FaderMapping.percent(for: 0.005), 1)
+        XCTAssertEqual(FaderMapping.percent(for: 1), 100)
+    }
+
     func testFrequencyPresets() {
         XCTAssertEqual(FrequencyInput.presets, [100, 440, 1000, 10000])
         XCTAssertEqual(FrequencyInput.presets.map(FrequencyInput.presetLabel), ["100 Hz", "440 Hz", "1 kHz", "10 kHz"])
