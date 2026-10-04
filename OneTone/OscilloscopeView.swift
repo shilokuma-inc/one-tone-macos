@@ -21,7 +21,7 @@ struct OscilloscopeView: View {
         // 停止中は描画の更新も止める
         TimelineView(.animation(minimumInterval: reduceMotion ? 0.5 : 1.0 / 30, paused: !isPlaying)) { _ in
             let samples = isPlaying
-                ? Oscilloscope.triggeredWindow(readSamples(Oscilloscope.windowLength * 2), length: Oscilloscope.windowLength)
+                ? Oscilloscope.triggeredWindow(readSamples(Oscilloscope.readLength), length: Oscilloscope.windowLength)
                 : []
             Canvas { context, size in
                 drawGrid(in: &context, size: size)
@@ -65,6 +65,10 @@ struct OscilloscopeView: View {
 enum Oscilloscope {
     /// 表示するサンプル数。48kHz で約 21ms（440Hz なら約 9 周期）
     static let windowLength = 1024
+    /// 描画のたびに読む出力履歴の数。表示範囲の手前でゼロクロスを探す範囲に、最低周波数 20Hz の 1 周期
+    /// （48kHz で 2400、96kHz でも 4800 サンプル）が収まるよう、履歴を全部読む。
+    /// 探す範囲が 1 周期より短いと、トリガーできる回とできない回が入れ替わって波形の位置が跳ぶ
+    static let readLength = AudioManager.outputHistoryCapacity
     /// 振幅 1 のときに上下の端から残す余白の割合
     static let verticalMargin: CGFloat = 0.1
 

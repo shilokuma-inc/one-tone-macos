@@ -56,4 +56,22 @@ final class OscilloscopeTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(bounds.minY, 5 - 1e-9)
         XCTAssertLessThanOrEqual(bounds.maxY, 95 + 1e-9)
     }
+
+    func testSearchRangeCoversOnePeriodOfLowestFrequency() {
+        // 96kHz の出力でも、20Hz の 1 周期分をゼロクロスの探索範囲に取れる
+        let searchRange = Oscilloscope.readLength - Oscilloscope.windowLength
+        XCTAssertGreaterThanOrEqual(searchRange, Int(96000 / FrequencyInput.range.lowerBound))
+        XCTAssertLessThanOrEqual(Oscilloscope.readLength, AudioManager.outputHistoryCapacity)
+    }
+
+    func testTriggeredWindowFindsCrossingAtLowestFrequency() {
+        // 48kHz・20Hz（1 周期 2400 サンプル）でも、どの位相から読んでもトリガーできる
+        for phase in stride(from: 0.0, to: 1.0, by: 0.1) {
+            let samples = sine(count: Oscilloscope.readLength, period: 2400, phase: phase)
+            let window = Oscilloscope.triggeredWindow(samples, length: Oscilloscope.windowLength)
+            XCTAssertEqual(window.count, Oscilloscope.windowLength)
+            XCTAssertEqual(window[0], 0, accuracy: 0.01, "phase \(phase)")
+            XCTAssertGreaterThan(window[10], window[0])
+        }
+    }
 }
