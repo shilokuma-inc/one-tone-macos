@@ -435,6 +435,18 @@ final class OneToneTests: XCTestCase {
         }
     }
 
+    func testDeckLayoutSwitchesByWidth() {
+        // iPhone（縦）は縦積み、iPad の縦向き・広げた macOS は横並び
+        XCTAssertFalse(DeckLayout.isSideBySide(width: 390))
+        XCTAssertFalse(DeckLayout.isSideBySide(width: 430))
+        XCTAssertTrue(DeckLayout.isSideBySide(width: 768))
+        XCTAssertTrue(DeckLayout.isSideBySide(width: 1024))
+        // 横並びにする幅には、パネル 2 枚の幅に近い余裕がある
+        XCTAssertGreaterThanOrEqual(DeckLayout.sideBySideMinWidth, DeckLayout.panelMaxWidth * 1.5)
+        // macOS の最小ウィンドウは横並びにならない幅
+        XCTAssertFalse(DeckLayout.isSideBySide(width: DeckLayout.minimumWindowSize.width))
+    }
+
     func testFrequencyPresets() {
         XCTAssertEqual(FrequencyInput.presets, [100, 440, 1000, 10000])
         XCTAssertEqual(FrequencyInput.presets.map(FrequencyInput.presetLabel), ["100 Hz", "440 Hz", "1 kHz", "10 kHz"])

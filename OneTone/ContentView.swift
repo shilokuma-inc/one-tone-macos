@@ -15,42 +15,75 @@ struct ContentView: View {
     @State private var waveform: Waveform = .sine
     
     var body: some View {
-        VStack {
-            Spacer()
-            
-            TitleView(isPlaying: audioManager.isPlaying)
-            
-            OscilloscopeView(isPlaying: audioManager.isPlaying, readSamples: audioManager.latestOutputSamples)
-            
-            Spacer()
-            
-            PlaybackControls(
-                isPlaying: audioManager.isPlaying,
-                onPlay: { audioManager.playTone(frequency: frequency) },
-                onStop: { audioManager.stopTone() }
-            )
-            
+        // 幅で並べ方だけを変え、狭い画面では縦にスクロールして部品が切れないようにする
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(spacing: 16) {
+                    TitleView(isPlaying: audioManager.isPlaying)
+                        .padding(.top)
+                    
+                    OscilloscopeView(isPlaying: audioManager.isPlaying, readSamples: audioManager.latestOutputSamples)
+                        .frame(maxWidth: DeckLayout.panelMaxWidth * 2)
+                    
+                    if DeckLayout.isSideBySide(width: proxy.size.width) {
+                        HStack(alignment: .top, spacing: 16) {
+                            frequencyPanel
+                            outputPanel
+                        }
+                    } else {
+                        VStack(spacing: 16) {
+                            outputPanel
+                            frequencyPanel
+                        }
+                    }
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+            }
+            #if os(iOS)
+            // 数値入力のキーボードをスクロールで閉じられるようにする（確定は従来どおり onSubmit）
+            .scrollDismissesKeyboard(.interactively)
+            #endif
+        }
+        #if os(macOS)
+        .frame(minWidth: DeckLayout.minimumWindowSize.width, minHeight: DeckLayout.minimumWindowSize.height)
+        #endif
+        .themedScreen()
+    }
+    
+    /// 周波数を決める部品（ノブ・表示・スライダー・数値入力・プリセット）
+    private var frequencyPanel: some View {
+        DeckPanel(title: "FREQUENCY") {
             FrequencyKnob(frequency: frequency, onChange: setFrequency)
             
-            FrequencySlider(frequency: frequency, onChange: setFrequency)
-            
             FrequencyDisplay(frequency: frequency)
+            
+            FrequencySlider(frequency: frequency, onChange: setFrequency)
             
             FrequencyTextField(text: $frequencyText, onSubmit: submitFrequencyText)
             
             FrequencyPresetButtons(frequency: frequency, onSelect: setFrequency)
-            
-            VolumeControl(volume: volume, onChange: setVolume)
+        }
+    }
+    
+    /// 鳴らし方を決める部品（再生／停止・音量とメーター・波形）
+    private var outputPanel: some View {
+        DeckPanel(title: "OUTPUT") {
+            HStack(alignment: .center, spacing: 8) {
+                PlaybackControls(
+                    isPlaying: audioManager.isPlaying,
+                    onPlay: { audioManager.playTone(frequency: frequency) },
+                    onStop: { audioManager.stopTone() }
+                )
+                .frame(maxWidth: .infinity)
+                
+                VolumeControl(volume: volume, onChange: setVolume)
+            }
             
             LevelMeterView(isPlaying: audioManager.isPlaying, readSamples: audioManager.latestOutputSamples)
             
             WaveformPicker(waveform: waveform, onChange: setWaveform)
-            
-            Spacer()
         }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .themedScreen()
     }
     
     /// スライダー・ノブ・数値入力・プリセットのどこから変えても、表示と入力欄と再生中の音をそろえる
@@ -113,6 +146,12 @@ enum FrequencyInput {
     }
 }
 
-#Preview {
+#Preview("iPhone の幅") {
     ContentView()
+        .frame(width: 390, height: 844)
+}
+
+#Preview("広い画面") {
+    ContentView()
+        .frame(width: 1024, height: 768)
 }
