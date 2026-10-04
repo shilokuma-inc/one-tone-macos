@@ -29,6 +29,8 @@
 		2714CAA32BB91936606E2F40 /* NeonGlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF63C029A8173D88CF98 /* NeonGlowTests.swift */; };
 		74086856C730017FF3AC29F5 /* FrequencyKnob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C16C753EC9240FC9BC1DA7D /* FrequencyKnob.swift */; };
 		A4791AB12D480A8316C2C8FF /* FrequencyKnobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57429F39C3E80FA45607352 /* FrequencyKnobTests.swift */; };
+		6BDA8009A73A5CCE05F743CC /* LevelMeterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 253C567AE131AB52121000D3 /* LevelMeterView.swift */; };
+		B29237D025CA867A2059046B /* LevelMeterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB4770691A15EEEF905F9BF0 /* LevelMeterTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +77,8 @@
 		B5ECEF63C029A8173D88CF98 /* NeonGlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonGlowTests.swift; sourceTree = "<group>"; };
 		3C16C753EC9240FC9BC1DA7D /* FrequencyKnob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequencyKnob.swift; sourceTree = "<group>"; };
 		C57429F39C3E80FA45607352 /* FrequencyKnobTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequencyKnobTests.swift; sourceTree = "<group>"; };
+		253C567AE131AB52121000D3 /* LevelMeterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelMeterView.swift; sourceTree = "<group>"; };
+		FB4770691A15EEEF905F9BF0 /* LevelMeterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelMeterTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -125,6 +129,7 @@
 		4F35649B2C04ED720015F5B5 /* OneTone */ = {
 			isa = PBXGroup;
 			children = (
+				253C567AE131AB52121000D3 /* LevelMeterView.swift */,
 				3C16C753EC9240FC9BC1DA7D /* FrequencyKnob.swift */,
 				BD510FE5B23A742588DF144E /* NeonGlow.swift */,
 				CCD16F17D9D3AE4C740823B6 /* Theme.swift */,
@@ -156,6 +161,7 @@
 		4F3564AD2C04ED740015F5B5 /* OneToneTests */ = {
 			isa = PBXGroup;
 			children = (
+				FB4770691A15EEEF905F9BF0 /* LevelMeterTests.swift */,
 				C57429F39C3E80FA45607352 /* FrequencyKnobTests.swift */,
 				B5ECEF63C029A8173D88CF98 /* NeonGlowTests.swift */,
 				D0973AB3BCFCB499DB02709E /* AudioOutputTapTests.swift */,
@@ -304,6 +310,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6BDA8009A73A5CCE05F743CC /* LevelMeterView.swift in Sources */,
 				74086856C730017FF3AC29F5 /* FrequencyKnob.swift in Sources */,
 				42F1309F6F943FB2CD8164ED /* NeonGlow.swift in Sources */,
 				AFE1C6798A21DAD499BD65D4 /* Theme.swift in Sources */,
@@ -324,6 +331,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B29237D025CA867A2059046B /* LevelMeterTests.swift in Sources */,
 				A4791AB12D480A8316C2C8FF /* FrequencyKnobTests.swift in Sources */,
 				2714CAA32BB91936606E2F40 /* NeonGlowTests.swift in Sources */,
 				407D703CBB65FE821F124499 /* AudioOutputTapTests.swift in Sources */,
