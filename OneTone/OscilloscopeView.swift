@@ -73,12 +73,13 @@ enum Oscilloscope {
     static let verticalMargin: CGFloat = 0.1
 
     /// 波形の位置が描画のたびにずれて流れて見えないよう、負から 0 以上へ上がる点（ゼロクロス）から `length` 個を切り出す。
+    /// 表示が実際の出力から遅れないよう、後ろに `length` 個残るゼロクロスのうち最も新しいものを選ぶ。
     /// ゼロクロスが見つからない（無音など）ときは末尾の `length` 個を返す
     static func triggeredWindow(_ samples: [Float], length: Int) -> [Float] {
         guard length > 0, samples.count > length else { return samples }
         // 切り出した後ろに `length` 個残る範囲でだけ探す
         let searchEnd = samples.count - length
-        for index in 1...searchEnd where samples[index - 1] < 0 && samples[index] >= 0 {
+        for index in stride(from: searchEnd, through: 1, by: -1) where samples[index - 1] < 0 && samples[index] >= 0 {
             return Array(samples[index..<(index + length)])
         }
         return Array(samples.suffix(length))

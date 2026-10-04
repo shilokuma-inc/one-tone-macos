@@ -12,11 +12,13 @@ final class OscilloscopeTests: XCTestCase {
         (0..<count).map { Float(sin(2 * Double.pi * (Double($0) / period + phase))) }
     }
 
-    func testTriggeredWindowStartsAtRisingZeroCrossing() {
+    func testTriggeredWindowStartsAtLatestRisingZeroCrossing() {
         let samples = sine(count: 400, period: 50, phase: 0.3)
         let window = Oscilloscope.triggeredWindow(samples, length: 100)
         XCTAssertEqual(window.count, 100)
-        let start = (1..<samples.count).first { samples[$0 - 1] < 0 && samples[$0] >= 0 }!
+        // 後ろに 100 個残るゼロクロスのうち、最も新しいもの（表示が出力から遅れない）
+        let start = (1...(samples.count - 100)).last { samples[$0 - 1] < 0 && samples[$0] >= 0 }!
+        XCTAssertGreaterThan(start, samples.count - 100 - 50, "1 周期（50 サンプル）以内の新しい位置から切り出す")
         XCTAssertEqual(window, Array(samples[start..<(start + 100)]))
         XCTAssertGreaterThanOrEqual(window[0], 0)
     }
