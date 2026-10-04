@@ -5,11 +5,20 @@
 
 import SwiftUI
 
-/// 虹色のグラデーションの色相を回し続けるタイトル
+/// 虹色のタイトル。グラデーションは常に表示し、色相の回転と発光は再生中だけにする（停止中は静か）。
+/// Reduce Motion がオンのときは回転させない
 struct TitleView: View {
-    @State private var hue: Double = 0
+    let isPlaying: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        // 経過時間から角度を決めるので、止めるとその角度のまま静止し、再開しても色が飛ばない
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !isPlaying || reduceMotion)) { context in
+            title(hue: Self.hueDegrees(at: context.date.timeIntervalSinceReferenceDate))
+        }
+    }
+
+    private func title(hue: Double) -> some View {
         Text("One Tone")
             .foregroundStyle(Theme.textPrimary)
             .font(.custom("Helvetica Neue", size: 60))
@@ -32,16 +41,24 @@ struct TitleView: View {
                 .fontWeight(.bold)
                 .hueRotation(Angle(degrees: hue))
             )
-            .onAppear {
-                withAnimation(Animation.linear(duration: 1).repeatForever(autoreverses: false)) {
-                    hue = 360
-                }
-            }
+            .neonGlow(Theme.accentSecondary, isActive: isPlaying)
+    }
+
+    /// 経過時間に対する色相の回転角（0..<360）。`Theme.titleHueCyclePeriod` 秒で 1 周する
+    static func hueDegrees(at time: TimeInterval) -> Double {
+        let progress = time / Theme.titleHueCyclePeriod
+        return (progress - floor(progress)) * 360
     }
 }
 
-#Preview {
-    TitleView()
+#Preview("停止中") {
+    TitleView(isPlaying: false)
+        .padding()
+        .themedScreen()
+}
+
+#Preview("再生中") {
+    TitleView(isPlaying: true)
         .padding()
         .themedScreen()
 }

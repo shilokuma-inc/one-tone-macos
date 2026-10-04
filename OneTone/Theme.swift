@@ -37,6 +37,12 @@ enum Theme {
     static let cornerRadius: CGFloat = 12
     /// 再生中の発光の半径。停止中は発光させない
     static let glowRadius: CGFloat = 8
+    /// 発光の明るさがゆっくりゆらぐ周期（秒）。点滅に見えないよう、ゆらぎは小さく遅くする
+    static let glowPulsePeriod: TimeInterval = 2.4
+    /// 発光の明るさのゆらぎの幅（0...1）。明るさは 1 - この値 〜 1 の間を行き来し、消えることはない
+    static let glowPulseDepth: Double = 0.25
+    /// 再生中にタイトルの色相が 1 周する秒数。以前の 1 秒周期は速すぎるため、ゆっくり回す
+    static let titleHueCyclePeriod: TimeInterval = 8
 }
 
 extension Color {

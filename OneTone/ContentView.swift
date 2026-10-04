@@ -18,7 +18,7 @@ struct ContentView: View {
         VStack {
             Spacer()
             
-            TitleView()
+            TitleView(isPlaying: audioManager.isPlaying)
             
             Spacer()
             
