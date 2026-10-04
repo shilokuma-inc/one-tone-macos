@@ -370,6 +370,83 @@ final class OneToneTests: XCTestCase {
         XCTAssertEqual(FrequencyInput.format(19999.4), "19999")
     }
 
+    func testPresetIsSelectedWhenDisplayedFrequencyMatches() {
+        XCTAssertTrue(FrequencyInput.isPresetSelected(440, frequency: 440))
+        // 表示（1Hz 単位）が一致すれば選択中とみなす
+        XCTAssertTrue(FrequencyInput.isPresetSelected(440, frequency: 439.6))
+        XCTAssertTrue(FrequencyInput.isPresetSelected(1000, frequency: 1000.4))
+        XCTAssertFalse(FrequencyInput.isPresetSelected(440, frequency: 439.4))
+        XCTAssertFalse(FrequencyInput.isPresetSelected(440, frequency: 1000))
+        // 選択中になるプリセットは高々 1 つ
+        for frequency in [20.0, 100, 440, 1000, 10000, 20000] {
+            let selected = FrequencyInput.presets.filter { FrequencyInput.isPresetSelected($0, frequency: frequency) }
+            XCTAssertLessThanOrEqual(selected.count, 1)
+        }
+    }
+
+    func testFaderMovesUpWhenDraggedUp() {
+        // 溝の長さだけ上へドラッグすると 0% から 100% になる
+        XCTAssertEqual(FaderMapping.volume(from: 0, dragHeight: -Double(FaderMapping.trackHeight)), 1, accuracy: 1e-9)
+        XCTAssertEqual(FaderMapping.volume(from: 0.5, dragHeight: -Double(FaderMapping.trackHeight) / 4), 0.75, accuracy: 1e-9)
+        XCTAssertEqual(FaderMapping.volume(from: 0.5, dragHeight: Double(FaderMapping.trackHeight) / 4), 0.25, accuracy: 1e-9)
+        // 動かさなければ始点のまま（掴んだ位置へ飛ばない）
+        XCTAssertEqual(FaderMapping.volume(from: 0.3, dragHeight: 0), 0.3, accuracy: 1e-9)
+    }
+
+    func testFaderStopsAtEnds() {
+        XCTAssertEqual(FaderMapping.volume(from: 0.9, dragHeight: -1000), 1)
+        XCTAssertEqual(FaderMapping.volume(from: 0.1, dragHeight: 1000), 0)
+        XCTAssertEqual(FaderMapping.clamped(1.2), 1)
+        XCTAssertEqual(FaderMapping.clamped(-0.2), 0)
+    }
+
+    func testFaderPercentMatchesPreviousVolumeLabel() {
+        // 以前の「Volume: 50%」表示と同じ四捨五入
+        XCTAssertEqual(FaderMapping.percent(for: 0.5), 50)
+        XCTAssertEqual(FaderMapping.percent(for: 0.004), 0)
+        XCTAssertEqual(FaderMapping.percent(for: 0.005), 1)
+        XCTAssertEqual(FaderMapping.percent(for: 1), 100)
+    }
+
+    func testWaveformIconFollowsWaveformDefinition() {
+        let rect = CGRect(x: 0, y: 0, width: 100, height: 40)
+        for waveform in Waveform.allCases {
+            let points = WaveformIcon.points(for: waveform, in: rect)
+            XCTAssertEqual(points.count, WaveformIcon.sampleCount + 1)
+            // 左端から右端まで、上下は枠に収まる
+            XCTAssertEqual(points.first?.x ?? -1, 0, accuracy: 1e-9)
+            XCTAssertEqual(points.last?.x ?? -1, 100, accuracy: 1e-9)
+            XCTAssertTrue(points.allSatisfy { $0.y >= -1e-9 && $0.y <= 40 + 1e-9 })
+            // 各点の高さは音の定義と同じ値（上が 1、下が -1）
+            for (index, point) in points.enumerated().dropLast() {
+                let phase = Double(index) / Double(WaveformIcon.sampleCount)
+                XCTAssertEqual(point.y, 20 - 20 * waveform.value(at: phase), accuracy: 1e-9)
+            }
+        }
+    }
+
+    func testWaveformIconsDiffer() {
+        let rect = CGRect(x: 0, y: 0, width: 100, height: 40)
+        let shapes = Waveform.allCases.map { WaveformIcon.points(for: $0, in: rect).map(\.y) }
+        for i in shapes.indices {
+            for j in shapes.indices where i < j {
+                XCTAssertNotEqual(shapes[i], shapes[j])
+            }
+        }
+    }
+
+    func testDeckLayoutSwitchesByWidth() {
+        // iPhone（縦）は縦積み、iPad の縦向き・広げた macOS は横並び
+        XCTAssertFalse(DeckLayout.isSideBySide(width: 390))
+        XCTAssertFalse(DeckLayout.isSideBySide(width: 430))
+        XCTAssertTrue(DeckLayout.isSideBySide(width: 768))
+        XCTAssertTrue(DeckLayout.isSideBySide(width: 1024))
+        // 横並びにする幅には、パネル 2 枚の幅に近い余裕がある
+        XCTAssertGreaterThanOrEqual(DeckLayout.sideBySideMinWidth, DeckLayout.panelMaxWidth * 1.5)
+        // macOS の最小ウィンドウは横並びにならない幅
+        XCTAssertFalse(DeckLayout.isSideBySide(width: DeckLayout.minimumWindowSize.width))
+    }
+
     func testFrequencyPresets() {
         XCTAssertEqual(FrequencyInput.presets, [100, 440, 1000, 10000])
         XCTAssertEqual(FrequencyInput.presets.map(FrequencyInput.presetLabel), ["100 Hz", "440 Hz", "1 kHz", "10 kHz"])
