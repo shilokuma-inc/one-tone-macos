@@ -23,6 +23,7 @@
 		481F0AD1F62F3F8054A85E76 /* WaveformPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A470FA42F175C2AACE62DA15 /* WaveformPicker.swift */; };
 		DA5CD492011D1C2A9423EAA8 /* SampleRingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F4CF62B2D93FFBC0B96FF58 /* SampleRingBuffer.swift */; };
 		D1BD1C8BB4E363C1197FE6A7 /* SampleRingBufferTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFC38CB04B067663CAF98D8 /* SampleRingBufferTests.swift */; };
+		407D703CBB65FE821F124499 /* AudioOutputTapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0973AB3BCFCB499DB02709E /* AudioOutputTapTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 		A470FA42F175C2AACE62DA15 /* WaveformPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformPicker.swift; sourceTree = "<group>"; };
 		2F4CF62B2D93FFBC0B96FF58 /* SampleRingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleRingBuffer.swift; sourceTree = "<group>"; };
 		CCFC38CB04B067663CAF98D8 /* SampleRingBufferTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleRingBufferTests.swift; sourceTree = "<group>"; };
+		D0973AB3BCFCB499DB02709E /* AudioOutputTapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioOutputTapTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -141,6 +143,7 @@
 		4F3564AD2C04ED740015F5B5 /* OneToneTests */ = {
 			isa = PBXGroup;
 			children = (
+				D0973AB3BCFCB499DB02709E /* AudioOutputTapTests.swift */,
 				CCFC38CB04B067663CAF98D8 /* SampleRingBufferTests.swift */,
 				4F3564AE2C04ED740015F5B5 /* OneToneTests.swift */,
 			);
@@ -303,6 +306,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				407D703CBB65FE821F124499 /* AudioOutputTapTests.swift in Sources */,
 				D1BD1C8BB4E363C1197FE6A7 /* SampleRingBufferTests.swift in Sources */,
 				4F3564AF2C04ED740015F5B5 /* OneToneTests.swift in Sources */,
 			);

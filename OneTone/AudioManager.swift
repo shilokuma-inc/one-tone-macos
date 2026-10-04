@@ -10,6 +10,9 @@ import AVFoundation
 class AudioManager: ObservableObject {
     /// 出力デバイスが無くサンプルレートが取れない環境向けのフォールバック
     private static let fallbackSampleRate: Double = 44100
+    /// 波形表示・レベルメーター用に保持する出力サンプル数。48kHz で約 170ms 分あり、
+    /// 20Hz（1 周期 2400 サンプル）の波形と、メーターの集計窓を十分に取れる
+    static let outputHistoryCapacity = 8192
 
     let audioEngine: AVAudioEngine
     private let sourceNode: AVAudioSourceNode
@@ -27,6 +30,8 @@ class AudioManager: ObservableObject {
     private let targetVolume: UnsafeMutablePointer<Double>
     private let targetWaveform: UnsafeMutablePointer<Waveform>
     private let isRendering: UnsafeMutablePointer<Bool>
+    /// レンダーブロックが実際に出力したサンプルの写し。UI は `latestOutputSamples(_:)` で描画のたびに読む
+    private let outputSamples: SampleRingBuffer
 
     init() {
         // セッションを有効にしてから出力フォーマットを読まないと、iOS でサンプルレートが確定しない
@@ -48,35 +53,25 @@ class AudioManager: ObservableObject {
         targetWaveform.initialize(to: currentWaveform)
         isRendering = .allocate(capacity: 1)
         isRendering.initialize(to: false)
+        outputSamples = SampleRingBuffer(capacity: Self.outputHistoryCapacity)
 
         let synthesizer = synthesizer
         let targetFrequency = targetFrequency
         let targetVolume = targetVolume
         let targetWaveform = targetWaveform
         let isRendering = isRendering
+        let outputSamples = outputSamples
         sourceNode = AVAudioSourceNode { isSilence, _, frameCount, audioBufferList -> OSStatus in
-            let buffers = UnsafeMutableAudioBufferListPointer(audioBufferList)
-            synthesizer.pointee.update(
+            isSilence.pointee = ObjCBool(AudioManager.render(
+                frameCount: Int(frameCount),
+                into: UnsafeMutableAudioBufferListPointer(audioBufferList),
+                synthesizer: synthesizer,
                 frequency: targetFrequency.pointee,
                 volume: targetVolume.pointee,
                 waveform: targetWaveform.pointee,
-                isPlaying: isRendering.pointee
-            )
-            // 停止後もフェードアウトが終わるまでは生成を続け、無音になってから止める
-            guard !synthesizer.pointee.isSilent else {
-                for buffer in buffers {
-                    memset(buffer.mData, 0, Int(buffer.mDataByteSize))
-                }
-                isSilence.pointee = true
-                return noErr
-            }
-            for frame in 0..<Int(frameCount) {
-                let sample = synthesizer.pointee.nextSample()
-                // 出力チャンネル数はデバイスによって変わるため、決め打ちにせず実際の数だけ書き込む
-                for buffer in buffers {
-                    buffer.mData?.assumingMemoryBound(to: Float.self)[frame] = sample
-                }
-            }
+                isPlaying: isRendering.pointee,
+                outputSamples: outputSamples
+            ))
             return noErr
         }
 
@@ -98,6 +93,54 @@ class AudioManager: ObservableObject {
         targetVolume.deallocate()
         targetWaveform.deallocate()
         isRendering.deallocate()
+        outputSamples.deallocate()
+    }
+
+    /// レンダーブロックの中身。AVAudioEngine 無しでテストから呼べるように切り出している。
+    /// リアルタイムスレッドで呼ばれるため、ロック・メモリ確保・参照カウントの操作をしない。
+    /// - Returns: 無音を出力したら true（`isSilence` に渡す）
+    static func render(
+        frameCount: Int,
+        into buffers: UnsafeMutableAudioBufferListPointer,
+        synthesizer: UnsafeMutablePointer<ToneSynthesizer>,
+        frequency: Double,
+        volume: Double,
+        waveform: Waveform,
+        isPlaying: Bool,
+        outputSamples: SampleRingBuffer
+    ) -> Bool {
+        synthesizer.pointee.update(
+            frequency: frequency,
+            volume: volume,
+            waveform: waveform,
+            isPlaying: isPlaying
+        )
+        // 停止後もフェードアウトが終わるまでは生成を続け、無音になってから止める
+        guard !synthesizer.pointee.isSilent else {
+            for buffer in buffers {
+                memset(buffer.mData, 0, Int(buffer.mDataByteSize))
+            }
+            // 表示も実際の出力に合わせて無音にする。書かずにおくと、止めた瞬間の波形が履歴に残り続ける
+            for _ in 0..<frameCount {
+                outputSamples.write(0)
+            }
+            return true
+        }
+        for frame in 0..<frameCount {
+            let sample = synthesizer.pointee.nextSample()
+            // 出力チャンネル数はデバイスによって変わるため、決め打ちにせず実際の数だけ書き込む
+            for buffer in buffers {
+                buffer.mData?.assumingMemoryBound(to: Float.self)[frame] = sample
+            }
+            outputSamples.write(sample)
+        }
+        return false
+    }
+
+    /// 直近に出力したサンプルを古い順に返す（モノラル・-1...1）。メインスレッドから描画のたびに呼ぶ。
+    /// サンプルごとに `@Published` を更新するとメインスレッドが追いつかないため、UI が必要なときに取りに来る形にしている
+    func latestOutputSamples(_ count: Int) -> [Float] {
+        outputSamples.latest(count)
     }
 
     /// iOS はオーディオセッションのカテゴリを指定しないと、既定の .soloAmbient になり
