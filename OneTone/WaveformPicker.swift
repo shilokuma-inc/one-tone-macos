@@ -30,4 +30,5 @@ struct WaveformPicker: View {
 
 #Preview {
     WaveformPicker(waveform: .sine, onChange: { _ in })
+        .themedScreen()
 }

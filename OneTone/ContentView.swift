@@ -43,6 +43,8 @@ struct ContentView: View {
             Spacer()
         }
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .themedScreen()
     }
     
     /// スライダー・数値入力・プリセットのどこから変えても、表示と入力欄と再生中の音をそろえる

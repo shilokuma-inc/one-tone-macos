@@ -16,7 +16,7 @@ struct PlaybackControls: View {
             Button(action: onPlay) {
                 Text("Play Tone")
                     .padding()
-                    .foregroundColor(.white)
+                    .foregroundStyle(Theme.onAccent)
                     .cornerRadius(10)
             }
             .disabled(isPlaying)
@@ -24,21 +24,25 @@ struct PlaybackControls: View {
             Button(action: onStop) {
                 Text("Stop Tone")
                     .padding()
-                    .foregroundColor(.white)
+                    .foregroundStyle(Theme.onAccent)
                     .cornerRadius(10)
             }
             .disabled(!isPlaying)
         }
-        // iOS の既定のボタンは背景を持たないため、白文字のままではライトモードで読めない。
-        // 塗りつぶしスタイルを指定して macOS/iOS どちらでも視認できるようにする
+        // iOS の既定のボタンは背景を持たないため、塗りつぶしスタイルで macOS/iOS どちらでも押せる形に見せる。
+        // 塗りは差し色（シアン）になるので、文字は白ではなく暗色にして読めるようにする
         .buttonStyle(.borderedProminent)
     }
 }
 
 #Preview("停止中") {
     PlaybackControls(isPlaying: false, onPlay: {}, onStop: {})
+        .padding()
+        .themedScreen()
 }
 
 #Preview("再生中") {
     PlaybackControls(isPlaying: true, onPlay: {}, onStop: {})
+        .padding()
+        .themedScreen()
 }
