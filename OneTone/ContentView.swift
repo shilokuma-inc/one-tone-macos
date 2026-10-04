@@ -40,6 +40,8 @@ struct ContentView: View {
             
             VolumeControl(volume: volume, onChange: setVolume)
             
+            LevelMeterView(isPlaying: audioManager.isPlaying, readSamples: audioManager.latestOutputSamples)
+            
             WaveformPicker(waveform: waveform, onChange: setWaveform)
             
             Spacer()
