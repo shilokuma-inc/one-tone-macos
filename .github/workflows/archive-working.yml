@@ -1,11 +1,11 @@
 name: Archive
 
+# Release 構成の Archive は統合ブランチの epic/** だけで確認する。
+# 作業ブランチの push ごとに走らせると macOS ランナーの枠（同時 5 ジョブ）を埋めるため、作業ブランチは Build だけにする
 on:
   push:
     branches:
-      - '**'
-      - '!main'
-      - '!develop'
+      - 'epic/**'
 
 concurrency:
   group: archive-working-${{ github.ref }}
