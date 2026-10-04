@@ -34,7 +34,7 @@ struct ContentView: View {
             
             FrequencyTextField(text: $frequencyText, onSubmit: submitFrequencyText)
             
-            FrequencyPresetButtons(onSelect: setFrequency)
+            FrequencyPresetButtons(frequency: frequency, onSelect: setFrequency)
             
             VolumeControl(volume: volume, onChange: setVolume)
             
@@ -90,6 +90,12 @@ enum FrequencyInput {
     /// 入力欄と表示ラベルで共通に使う表記（1Hz 単位に四捨五入）
     static func format(_ frequency: Double) -> String {
         String(Int(frequency.rounded()))
+    }
+
+    /// 今の周波数がプリセットと一致するか。表示と同じ 1Hz 単位の表記で比べるので、
+    /// 表示が「440」ならスライダーで 439.7Hz にしていても 440Hz のプリセットが選択中になる
+    static func isPresetSelected(_ preset: Double, frequency: Double) -> Bool {
+        format(preset) == format(frequency)
     }
 
     /// プリセットボタンの表記。1kHz 以上は kHz で表す

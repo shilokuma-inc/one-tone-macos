@@ -370,6 +370,20 @@ final class OneToneTests: XCTestCase {
         XCTAssertEqual(FrequencyInput.format(19999.4), "19999")
     }
 
+    func testPresetIsSelectedWhenDisplayedFrequencyMatches() {
+        XCTAssertTrue(FrequencyInput.isPresetSelected(440, frequency: 440))
+        // 表示（1Hz 単位）が一致すれば選択中とみなす
+        XCTAssertTrue(FrequencyInput.isPresetSelected(440, frequency: 439.6))
+        XCTAssertTrue(FrequencyInput.isPresetSelected(1000, frequency: 1000.4))
+        XCTAssertFalse(FrequencyInput.isPresetSelected(440, frequency: 439.4))
+        XCTAssertFalse(FrequencyInput.isPresetSelected(440, frequency: 1000))
+        // 選択中になるプリセットは高々 1 つ
+        for frequency in [20.0, 100, 440, 1000, 10000, 20000] {
+            let selected = FrequencyInput.presets.filter { FrequencyInput.isPresetSelected($0, frequency: frequency) }
+            XCTAssertLessThanOrEqual(selected.count, 1)
+        }
+    }
+
     func testFrequencyPresets() {
         XCTAssertEqual(FrequencyInput.presets, [100, 440, 1000, 10000])
         XCTAssertEqual(FrequencyInput.presets.map(FrequencyInput.presetLabel), ["100 Hz", "440 Hz", "1 kHz", "10 kHz"])
