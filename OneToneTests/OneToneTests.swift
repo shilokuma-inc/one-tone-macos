@@ -408,6 +408,33 @@ final class OneToneTests: XCTestCase {
         XCTAssertEqual(FaderMapping.percent(for: 1), 100)
     }
 
+    func testWaveformIconFollowsWaveformDefinition() {
+        let rect = CGRect(x: 0, y: 0, width: 100, height: 40)
+        for waveform in Waveform.allCases {
+            let points = WaveformIcon.points(for: waveform, in: rect)
+            XCTAssertEqual(points.count, WaveformIcon.sampleCount + 1)
+            // 左端から右端まで、上下は枠に収まる
+            XCTAssertEqual(points.first?.x ?? -1, 0, accuracy: 1e-9)
+            XCTAssertEqual(points.last?.x ?? -1, 100, accuracy: 1e-9)
+            XCTAssertTrue(points.allSatisfy { $0.y >= -1e-9 && $0.y <= 40 + 1e-9 })
+            // 各点の高さは音の定義と同じ値（上が 1、下が -1）
+            for (index, point) in points.enumerated().dropLast() {
+                let phase = Double(index) / Double(WaveformIcon.sampleCount)
+                XCTAssertEqual(point.y, 20 - 20 * waveform.value(at: phase), accuracy: 1e-9)
+            }
+        }
+    }
+
+    func testWaveformIconsDiffer() {
+        let rect = CGRect(x: 0, y: 0, width: 100, height: 40)
+        let shapes = Waveform.allCases.map { WaveformIcon.points(for: $0, in: rect).map(\.y) }
+        for i in shapes.indices {
+            for j in shapes.indices where i < j {
+                XCTAssertNotEqual(shapes[i], shapes[j])
+            }
+        }
+    }
+
     func testFrequencyPresets() {
         XCTAssertEqual(FrequencyInput.presets, [100, 440, 1000, 10000])
         XCTAssertEqual(FrequencyInput.presets.map(FrequencyInput.presetLabel), ["100 Hz", "440 Hz", "1 kHz", "10 kHz"])
