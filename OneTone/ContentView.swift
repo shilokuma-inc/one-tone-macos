@@ -28,6 +28,8 @@ struct ContentView: View {
                 onStop: { audioManager.stopTone() }
             )
             
+            FrequencyKnob(frequency: frequency, onChange: setFrequency)
+            
             FrequencySlider(frequency: frequency, onChange: setFrequency)
             
             FrequencyDisplay(frequency: frequency)
@@ -47,7 +49,7 @@ struct ContentView: View {
         .themedScreen()
     }
     
-    /// スライダー・数値入力・プリセットのどこから変えても、表示と入力欄と再生中の音をそろえる
+    /// スライダー・ノブ・数値入力・プリセットのどこから変えても、表示と入力欄と再生中の音をそろえる
     private func setFrequency(_ newFrequency: Double) {
         frequency = newFrequency
         frequencyText = FrequencyInput.format(newFrequency)
