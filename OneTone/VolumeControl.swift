@@ -32,4 +32,5 @@ struct VolumeControl: View {
     VStack {
         VolumeControl(volume: 0.5, onChange: { _ in })
     }
+    .themedScreen()
 }

@@ -11,7 +11,7 @@ struct TitleView: View {
 
     var body: some View {
         Text("One Tone")
-            .foregroundColor(Color.white)
+            .foregroundStyle(Theme.textPrimary)
             .font(.custom("Helvetica Neue", size: 60))
             .fontWeight(.bold)
             // iPhone の幅では 60pt のままだとタイトルが収まらないので縮小を許可する
@@ -19,10 +19,7 @@ struct TitleView: View {
             .minimumScaleFactor(0.5)
             .overlay(
                 LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color.red, Color.orange, Color.yellow, Color.green,
-                        Color.blue, Color.purple, Color.red
-                    ]),
+                    gradient: Gradient(colors: Theme.rainbow),
                     startPoint: .leading,
                     endPoint: .trailing
                 )
@@ -45,4 +42,6 @@ struct TitleView: View {
 
 #Preview {
     TitleView()
+        .padding()
+        .themedScreen()
 }

@@ -24,4 +24,5 @@ struct FrequencyPresetButtons: View {
 
 #Preview {
     FrequencyPresetButtons(onSelect: { _ in })
+        .themedScreen()
 }

@@ -64,4 +64,5 @@ struct FrequencyTextField: View {
         FrequencyTextField(text: .constant("440"), onSubmit: {})
     }
     .padding()
+    .themedScreen()
 }
