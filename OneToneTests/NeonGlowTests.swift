@@ -50,4 +50,32 @@ final class NeonGlowTests: XCTestCase {
             XCTAssertLessThan(hue, 360)
         }
     }
+
+    func testPausableClockDoesNotAdvanceWhileStopped() {
+        let origin = Date(timeIntervalSinceReferenceDate: 1000)
+        var clock = PausableClock()
+        XCTAssertEqual(clock.elapsed(at: origin), 0)
+        clock.start(at: origin)
+        XCTAssertEqual(clock.elapsed(at: origin + 3), 3, accuracy: 1e-9)
+        clock.stop(at: origin + 3)
+        // 止めている間は進まない
+        XCTAssertEqual(clock.elapsed(at: origin + 10), 3, accuracy: 1e-9)
+        // 再開した瞬間は止めたときと同じ値から続く（色が飛ばない）
+        clock.start(at: origin + 10)
+        XCTAssertEqual(clock.elapsed(at: origin + 10), 3, accuracy: 1e-9)
+        XCTAssertEqual(clock.elapsed(at: origin + 12), 5, accuracy: 1e-9)
+    }
+
+    func testPausableClockIgnoresRepeatedStartAndStop() {
+        let origin = Date(timeIntervalSinceReferenceDate: 1000)
+        var clock = PausableClock()
+        clock.stop(at: origin)
+        XCTAssertEqual(clock.elapsed(at: origin + 5), 0)
+        clock.start(at: origin)
+        clock.start(at: origin + 2)
+        XCTAssertEqual(clock.elapsed(at: origin + 4), 4, accuracy: 1e-9)
+        clock.stop(at: origin + 4)
+        clock.stop(at: origin + 6)
+        XCTAssertEqual(clock.elapsed(at: origin + 8), 4, accuracy: 1e-9)
+    }
 }
