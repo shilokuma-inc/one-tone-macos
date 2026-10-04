@@ -25,7 +25,7 @@ xcodebuild test -project OneTone.xcodeproj -scheme OneTone -destination 'platfor
 
 ## ブランチ運用・規約
 
-- 作業は `develop` 起点でフィーチャーブランチを切る。ralph-loop の PR は `epic/**` 宛てに出す
+- 通常のフィーチャーブランチは `develop` 起点で切る。ralph-loop の作業ブランチは `epic/**` 起点で切り、PR もその epic 宛てに出す
 - コミット: `[type] 日本語の説明`。PR タイトル: `【TYPE】タイトル`。Assignee に自分を設定する
 
 ## ralph-loop による自律開発
