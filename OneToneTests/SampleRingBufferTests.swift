@@ -67,16 +67,29 @@ final class SampleRingBufferTests: XCTestCase {
         let buffer = SampleRingBuffer(capacity: 256)
         let total = 100_000
         let writer = DispatchGroup()
+        // 書き込みの途中で一度止めて読み出し、書き込み中の読み出しが必ず 1 回は起きるようにする
+        let halfWritten = DispatchSemaphore(value: 0)
+        let midwayReadDone = DispatchSemaphore(value: 0)
         writer.enter()
         DispatchQueue.global().async {
             for index in 0..<total {
+                if index == total / 2 {
+                    halfWritten.signal()
+                    _ = midwayReadDone.wait(timeout: .now() + 10)
+                }
                 buffer.write(Float(index % 2))
             }
             writer.leave()
         }
-        for _ in 0..<1000 {
+        XCTAssertEqual(halfWritten.wait(timeout: .now() + 10), .success)
+        let midway = buffer.latest(128)
+        XCTAssertEqual(midway.count, 128)
+        XCTAssertTrue(midway.allSatisfy { $0 == 0 || $0 == 1 })
+        midwayReadDone.signal()
+        // 残りの書き込みと並行して読み出しても、長さと値の範囲が崩れないこと
+        while buffer.totalWritten < total {
             let samples = buffer.latest(128)
-            XCTAssertLessThanOrEqual(samples.count, 128)
+            XCTAssertEqual(samples.count, 128)
             XCTAssertTrue(samples.allSatisfy { $0 == 0 || $0 == 1 })
         }
         XCTAssertEqual(writer.wait(timeout: .now() + 10), .success)
