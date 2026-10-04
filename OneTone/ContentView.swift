@@ -20,6 +20,8 @@ struct ContentView: View {
             
             TitleView(isPlaying: audioManager.isPlaying)
             
+            OscilloscopeView(isPlaying: audioManager.isPlaying, readSamples: audioManager.latestOutputSamples)
+            
             Spacer()
             
             PlaybackControls(
