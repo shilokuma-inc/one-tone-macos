@@ -14,8 +14,9 @@ struct FrequencyKnob: View {
     let frequency: Double
     let onChange: (Double) -> Void
 
-    /// ドラッグ中、前回の変化時点までの移動量。修飾キーを途中で押しても値が飛ばないよう、差分ずつ反映する
-    @State private var lastTranslation: CGSize?
+    /// ドラッグ中、前回の変化時点までの移動量。修飾キーを途中で押しても値が飛ばないよう、差分ずつ反映する。
+    /// `@GestureState` にしているのは、ドラッグがキャンセルされて `onEnded` が呼ばれなくても初期値に戻すため
+    @GestureState private var lastTranslation: CGSize = .zero
 
     private let size: CGFloat = 140
 
@@ -71,19 +72,15 @@ struct FrequencyKnob: View {
 
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                let previous = lastTranslation ?? .zero
-                lastTranslation = value.translation
+            .updating($lastTranslation) { value, previous, _ in
                 let delta = KnobMapping.positionDelta(
                     dx: value.translation.width - previous.width,
                     dy: value.translation.height - previous.height,
                     isFine: Self.isFineAdjustment
                 )
+                previous = value.translation
                 guard delta != 0 else { return }
                 onChange(KnobMapping.adjusted(frequency, by: delta))
-            }
-            .onEnded { _ in
-                lastTranslation = nil
             }
     }
 
