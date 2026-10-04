@@ -31,6 +31,8 @@
 		A4791AB12D480A8316C2C8FF /* FrequencyKnobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57429F39C3E80FA45607352 /* FrequencyKnobTests.swift */; };
 		6BDA8009A73A5CCE05F743CC /* LevelMeterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 253C567AE131AB52121000D3 /* LevelMeterView.swift */; };
 		B29237D025CA867A2059046B /* LevelMeterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB4770691A15EEEF905F9BF0 /* LevelMeterTests.swift */; };
+		AB3E1AAE7D84B3D6FDF5A0F3 /* OscilloscopeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F13AA3B89F77879B58B2BFE /* OscilloscopeView.swift */; };
+		CA73C009F7893EE00FD344FF /* OscilloscopeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40E4275C0D7BA2BE7ED243D1 /* OscilloscopeTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,6 +81,8 @@
 		C57429F39C3E80FA45607352 /* FrequencyKnobTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequencyKnobTests.swift; sourceTree = "<group>"; };
 		253C567AE131AB52121000D3 /* LevelMeterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelMeterView.swift; sourceTree = "<group>"; };
 		FB4770691A15EEEF905F9BF0 /* LevelMeterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelMeterTests.swift; sourceTree = "<group>"; };
+		0F13AA3B89F77879B58B2BFE /* OscilloscopeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OscilloscopeView.swift; sourceTree = "<group>"; };
+		40E4275C0D7BA2BE7ED243D1 /* OscilloscopeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OscilloscopeTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,6 +133,7 @@
 		4F35649B2C04ED720015F5B5 /* OneTone */ = {
 			isa = PBXGroup;
 			children = (
+				0F13AA3B89F77879B58B2BFE /* OscilloscopeView.swift */,
 				253C567AE131AB52121000D3 /* LevelMeterView.swift */,
 				3C16C753EC9240FC9BC1DA7D /* FrequencyKnob.swift */,
 				BD510FE5B23A742588DF144E /* NeonGlow.swift */,
@@ -161,6 +166,7 @@
 		4F3564AD2C04ED740015F5B5 /* OneToneTests */ = {
 			isa = PBXGroup;
 			children = (
+				40E4275C0D7BA2BE7ED243D1 /* OscilloscopeTests.swift */,
 				FB4770691A15EEEF905F9BF0 /* LevelMeterTests.swift */,
 				C57429F39C3E80FA45607352 /* FrequencyKnobTests.swift */,
 				B5ECEF63C029A8173D88CF98 /* NeonGlowTests.swift */,
@@ -310,6 +316,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AB3E1AAE7D84B3D6FDF5A0F3 /* OscilloscopeView.swift in Sources */,
 				6BDA8009A73A5CCE05F743CC /* LevelMeterView.swift in Sources */,
 				74086856C730017FF3AC29F5 /* FrequencyKnob.swift in Sources */,
 				42F1309F6F943FB2CD8164ED /* NeonGlow.swift in Sources */,
@@ -331,6 +338,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA73C009F7893EE00FD344FF /* OscilloscopeTests.swift in Sources */,
 				B29237D025CA867A2059046B /* LevelMeterTests.swift in Sources */,
 				A4791AB12D480A8316C2C8FF /* FrequencyKnobTests.swift in Sources */,
 				2714CAA32BB91936606E2F40 /* NeonGlowTests.swift in Sources */,
