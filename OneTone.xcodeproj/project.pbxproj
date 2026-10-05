@@ -38,6 +38,8 @@
 		7B2D4F6A1C3E5A7B9D0F1A01 /* Tutorial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A02 /* Tutorial.swift */; };
 		7B2D4F6A1C3E5A7B9D0F1A05 /* TutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A06 /* TutorialView.swift */; };
 		7B2D4F6A1C3E5A7B9D0F1A03 /* TutorialTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A04 /* TutorialTests.swift */; };
+		7B2D4F6A1C3E5A7B9D0F1A09 /* TutorialTrialPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A0A /* TutorialTrialPlayer.swift */; };
+		7B2D4F6A1C3E5A7B9D0F1A0B /* TutorialTrialPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A0C /* TutorialTrialPlayerTests.swift */; };
 		5A1C3E7D2F0B4A6E9C8D1B22 /* ScreenshotDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1C3E7D2F0B4A6E9C8D1B23 /* ScreenshotDemoTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -76,6 +78,8 @@
 		7B2D4F6A1C3E5A7B9D0F1A02 /* Tutorial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tutorial.swift; sourceTree = "<group>"; };
 		7B2D4F6A1C3E5A7B9D0F1A06 /* TutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialView.swift; sourceTree = "<group>"; };
 		7B2D4F6A1C3E5A7B9D0F1A04 /* TutorialTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialTests.swift; sourceTree = "<group>"; };
+		7B2D4F6A1C3E5A7B9D0F1A0A /* TutorialTrialPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialTrialPlayer.swift; sourceTree = "<group>"; };
+		7B2D4F6A1C3E5A7B9D0F1A0C /* TutorialTrialPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialTrialPlayerTests.swift; sourceTree = "<group>"; };
 		5A1C3E7D2F0B4A6E9C8D1B23 /* ScreenshotDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDemoTests.swift; sourceTree = "<group>"; };
 		845DEFE340AD8435DBE5E579 /* PlaybackControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackControls.swift; sourceTree = "<group>"; };
 		FA79D86B32324230989DFE6D /* FrequencyControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequencyControls.swift; sourceTree = "<group>"; };
@@ -161,6 +165,7 @@
 				5A1C3E7D2F0B4A6E9C8D1B21 /* ScreenshotDemo.swift */,
 				7B2D4F6A1C3E5A7B9D0F1A02 /* Tutorial.swift */,
 				7B2D4F6A1C3E5A7B9D0F1A06 /* TutorialView.swift */,
+				7B2D4F6A1C3E5A7B9D0F1A0A /* TutorialTrialPlayer.swift */,
 				4F35649C2C04ED720015F5B5 /* OneToneApp.swift */,
 				4F35649E2C04ED720015F5B5 /* ContentView.swift */,
 				4F3564C72C04F2110015F5B5 /* AudioManager.swift */,
@@ -188,6 +193,7 @@
 				B5ECEF63C029A8173D88CF98 /* NeonGlowTests.swift */,
 				5A1C3E7D2F0B4A6E9C8D1B23 /* ScreenshotDemoTests.swift */,
 				7B2D4F6A1C3E5A7B9D0F1A04 /* TutorialTests.swift */,
+				7B2D4F6A1C3E5A7B9D0F1A0C /* TutorialTrialPlayerTests.swift */,
 				D0973AB3BCFCB499DB02709E /* AudioOutputTapTests.swift */,
 				CCFC38CB04B067663CAF98D8 /* SampleRingBufferTests.swift */,
 				4F3564AE2C04ED740015F5B5 /* OneToneTests.swift */,
@@ -350,6 +356,7 @@
 				5A1C3E7D2F0B4A6E9C8D1B20 /* ScreenshotDemo.swift in Sources */,
 				7B2D4F6A1C3E5A7B9D0F1A01 /* Tutorial.swift in Sources */,
 				7B2D4F6A1C3E5A7B9D0F1A05 /* TutorialView.swift in Sources */,
+				7B2D4F6A1C3E5A7B9D0F1A09 /* TutorialTrialPlayer.swift in Sources */,
 				4F3564C82C04F2110015F5B5 /* AudioManager.swift in Sources */,
 				4F35649F2C04ED720015F5B5 /* ContentView.swift in Sources */,
 				4F35649D2C04ED720015F5B5 /* OneToneApp.swift in Sources */,
@@ -366,6 +373,7 @@
 				2714CAA32BB91936606E2F40 /* NeonGlowTests.swift in Sources */,
 				5A1C3E7D2F0B4A6E9C8D1B22 /* ScreenshotDemoTests.swift in Sources */,
 				7B2D4F6A1C3E5A7B9D0F1A03 /* TutorialTests.swift in Sources */,
+				7B2D4F6A1C3E5A7B9D0F1A0B /* TutorialTrialPlayerTests.swift in Sources */,
 				407D703CBB65FE821F124499 /* AudioOutputTapTests.swift in Sources */,
 				D1BD1C8BB4E363C1197FE6A7 /* SampleRingBufferTests.swift in Sources */,
 				4F3564AF2C04ED740015F5B5 /* OneToneTests.swift in Sources */,
