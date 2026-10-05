@@ -1,0 +1,13 @@
+{
+  "_comment": [
+    "App Store に載せる言語の単一定義。スクリーンショットの撮影と、説明文などのメタデータの反映の両方で使う。",
+    "language:      このリポジトリ内での言語コード。AppStore/metadata/<language>.json と撮影結果のフォルダ名に使う",
+    "appleLanguage: 撮影時にアプリへ渡す -AppleLanguages の値",
+    "appleLocale:   撮影時にアプリへ渡す -AppleLocale の値（日付や数値の書式）",
+    "storeLocale:   App Store Connect のロケール（アプリの言語コードとは別物）",
+    "このアプリはローカライズしていない（knownRegions は en のみ）ので、App Store も英語（en-US）だけに載せる。言語を増やしたら、ここにも足す。"
+  ],
+  "languages": [
+    { "language": "en", "appleLanguage": "en", "appleLocale": "en_US", "storeLocale": "en-US" }
+  ]
+}
