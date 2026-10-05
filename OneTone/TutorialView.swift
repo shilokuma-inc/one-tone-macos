@@ -216,7 +216,8 @@ struct TutorialTrialButtons: View {
     @ObservedObject var player: TutorialTrialPlayer
 
     var body: some View {
-        HStack(spacing: 8) {
+        // 波形ごとのボタンは 2 列に並べる。狭い iPhone で 4 つを 1 行に置くと「Sawtooth」などが読めなくなる
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: min(sounds.count, 2)), spacing: 8) {
             ForEach(sounds, id: \.self) { sound in
                 let isPlaying = player.playing == sound
                 Button {
@@ -233,12 +234,13 @@ struct TutorialTrialButtons: View {
                     .foregroundStyle(isPlaying ? Theme.accent : Theme.textPrimary)
                     .padding(.vertical, 10)
                     .padding(.horizontal, 10)
-                    .frame(maxWidth: sounds.count == 1 ? 200 : .infinity)
+                    .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(WaveformButtonStyle(isSelected: isPlaying))
                 .accessibilityLabel(isPlaying ? "Stop \(label(for: sound))" : "Play \(label(for: sound))")
             }
         }
+        .frame(maxWidth: sounds.count == 1 ? 200 : 360)
         .padding(.top, 4)
     }
 
