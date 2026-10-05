@@ -13,6 +13,10 @@ name: Screenshots/App Store
 # upload を外せば撮るだけで、結果は artifact から取れる。
 
 on:
+  # 一時的: workflow_dispatch のワークフローは既定ブランチに無いと起動できないため、登録のために push でも動かす（PR のマージ前に外す）
+  push:
+    branches:
+      - feat/app-store-listing-workflows
   workflow_dispatch:
     inputs:
       display_types:
@@ -126,7 +130,7 @@ jobs:
           DISPLAY_TYPE: ${{ matrix.display_type }}
           LANGUAGES: ${{ inputs.languages }}
           APP_VERSION: ${{ inputs.app_version }}
-          MISSING_LOCALES: ${{ inputs.missing_locales }}
+          MISSING_LOCALES: ${{ inputs.missing_locales || 'fail' }}
         run: |
           set -euo pipefail
           # PyJWT は標準では入っていないので、この実行かぎりの venv に入れる

@@ -17,6 +17,10 @@ name: Metadata/App Store
 # スクリーンショットと違って撮影が要らないので数十秒で終わる。
 
 on:
+  # 一時的: workflow_dispatch のワークフローは既定ブランチに無いと起動できないため、登録のために push でも動かす（PR のマージ前に外す）
+  push:
+    branches:
+      - feat/app-store-listing-workflows
   workflow_dispatch:
     inputs:
       mode:
@@ -54,7 +58,7 @@ on:
 
 jobs:
   metadata:
-    name: ${{ inputs.mode }}
+    name: ${{ inputs.mode || 'dry-run' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -86,11 +90,12 @@ jobs:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY_PATH: private_keys/AuthKey.p8
-          MODE: ${{ inputs.mode }}
-          PLATFORM: ${{ inputs.platform }}
+          # workflow_dispatch 以外から動いたときは choice の既定値に揃える
+          MODE: ${{ inputs.mode || 'dry-run' }}
+          PLATFORM: ${{ inputs.platform || 'both' }}
           LANGUAGES: ${{ inputs.languages }}
           APP_VERSION: ${{ inputs.app_version }}
-          MISSING_LOCALES: ${{ inputs.missing_locales }}
+          MISSING_LOCALES: ${{ inputs.missing_locales || 'fail' }}
         run: |
           set -euo pipefail
           # PyJWT は標準では入っていないので、この実行かぎりの venv に入れる
@@ -126,8 +131,8 @@ jobs:
       - name: Summary
         if: always()
         env:
-          MODE: ${{ inputs.mode }}
-          PLATFORM: ${{ inputs.platform }}
+          MODE: ${{ inputs.mode || 'dry-run' }}
+          PLATFORM: ${{ inputs.platform || 'both' }}
         run: |
           set -euo pipefail
           {
