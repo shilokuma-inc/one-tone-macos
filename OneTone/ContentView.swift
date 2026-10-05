@@ -8,11 +8,18 @@
 import SwiftUI
 
 struct ContentView: View {
+    /// 縦スクロールで送り先にできる部品
+    enum Section: Hashable {
+        case frequency
+    }
+
     @StateObject private var audioManager: AudioManager
     @State private var frequency: Double
     @State private var frequencyText: String
     @State private var volume: Double
     @State private var waveform: Waveform
+    /// 撮影モードで、開いた直後に見える位置まで送る部品
+    private let initialScrollTarget: Section?
 
     /// - Parameter screenshotScene: スクリーンショットの撮影モードで撮る画面。渡すと、その周波数・波形・音量を初期値にし、
     ///   音を出さずに再生中の表示にする。画面を出さずに描く経路でも使えるよう、`.task` ではなく初期値で状態を作る
@@ -23,38 +30,48 @@ struct ContentView: View {
         _frequencyText = State(initialValue: FrequencyInput.format(initialFrequency))
         _volume = State(initialValue: screenshotScene?.volume ?? 0.5)
         _waveform = State(initialValue: screenshotScene?.waveform ?? .sine)
+        initialScrollTarget = screenshotScene?.scrollTarget
     }
     
     var body: some View {
         // 幅で並べ方だけを変え、狭い画面では縦にスクロールして部品が切れないようにする
         GeometryReader { proxy in
-            ScrollView {
-                VStack(spacing: 16) {
-                    TitleView(isPlaying: audioManager.isPlaying)
-                        .padding(.top)
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        TitleView(isPlaying: audioManager.isPlaying)
+                            .padding(.top)
                     
-                    OscilloscopeView(isPlaying: audioManager.isPlaying, readSamples: audioManager.latestOutputSamples)
-                        .frame(maxWidth: DeckLayout.panelMaxWidth * 2)
+                        OscilloscopeView(isPlaying: audioManager.isPlaying, readSamples: audioManager.latestOutputSamples)
+                            .frame(maxWidth: DeckLayout.panelMaxWidth * 2)
                     
-                    if DeckLayout.isSideBySide(width: proxy.size.width) {
-                        HStack(alignment: .top, spacing: 16) {
-                            frequencyPanel
-                            outputPanel
-                        }
-                    } else {
-                        VStack(spacing: 16) {
-                            outputPanel
-                            frequencyPanel
+                        if DeckLayout.isSideBySide(width: proxy.size.width) {
+                            HStack(alignment: .top, spacing: 16) {
+                                frequencyPanel
+                                outputPanel
+                            }
+                        } else {
+                            VStack(spacing: 16) {
+                                outputPanel
+                                frequencyPanel
+                                    .id(Section.frequency)
+                            }
                         }
                     }
+                    .padding()
+                    .frame(maxWidth: .infinity)
                 }
-                .padding()
-                .frame(maxWidth: .infinity)
+                #if os(iOS)
+                // 数値入力のキーボードをスクロールで閉じられるようにする（確定は従来どおり onSubmit）
+                .scrollDismissesKeyboard(.interactively)
+                #endif
+                .onAppear {
+                    // チュートリアル用の撮影で、画面の下の方にある部品を写す
+                    if let initialScrollTarget {
+                        scrollProxy.scrollTo(initialScrollTarget, anchor: .top)
+                    }
+                }
             }
-            #if os(iOS)
-            // 数値入力のキーボードをスクロールで閉じられるようにする（確定は従来どおり onSubmit）
-            .scrollDismissesKeyboard(.interactively)
-            #endif
         }
         #if os(macOS)
         .frame(minWidth: DeckLayout.minimumWindowSize.width, minHeight: DeckLayout.minimumWindowSize.height)
