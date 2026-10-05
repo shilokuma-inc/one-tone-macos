@@ -378,7 +378,14 @@ def main() -> int:
             applied += 1
 
     if args.export:
-        status = export(args.metadata_dir, targets, exported)
+        if failures and len(target_platforms) > 1:
+            # 片方しか読めていないと platform 間の食い違いを確かめられない。
+            # 比べていない値を「both の現在値」として取り込ませないよう、書き出さずに止める
+            print("一部の platform の現在値を読めなかったため、食い違いを確かめられません。書き出しません。"
+                  "--platform で片方を選んでください。")
+            status = 1
+        else:
+            status = export(args.metadata_dir, targets, exported)
     else:
         print(f"完了: {applied} 件（platform × 言語）")
         if skipped:
