@@ -8,11 +8,22 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var audioManager = AudioManager()
-    @State private var frequency: Double = 20.0
-    @State private var frequencyText: String = FrequencyInput.format(20.0)
-    @State private var volume: Double = 0.5
-    @State private var waveform: Waveform = .sine
+    @StateObject private var audioManager: AudioManager
+    @State private var frequency: Double
+    @State private var frequencyText: String
+    @State private var volume: Double
+    @State private var waveform: Waveform
+
+    /// - Parameter screenshotScene: スクリーンショットの撮影モードで撮る画面。渡すと、その周波数・波形・音量を初期値にし、
+    ///   音を出さずに再生中の表示にする。画面を出さずに描く経路でも使えるよう、`.task` ではなく初期値で状態を作る
+    init(screenshotScene: ScreenshotDemo.Scene? = ScreenshotDemo.scene) {
+        let initialFrequency = screenshotScene?.frequency ?? 20.0
+        _audioManager = StateObject(wrappedValue: AudioManager.forScreenshot(screenshotScene))
+        _frequency = State(initialValue: initialFrequency)
+        _frequencyText = State(initialValue: FrequencyInput.format(initialFrequency))
+        _volume = State(initialValue: screenshotScene?.volume ?? 0.5)
+        _waveform = State(initialValue: screenshotScene?.waveform ?? .sine)
+    }
     
     var body: some View {
         // 幅で並べ方だけを変え、狭い画面では縦にスクロールして部品が切れないようにする

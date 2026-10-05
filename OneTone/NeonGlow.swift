@@ -8,19 +8,21 @@ import SwiftUI
 /// 再生中だけ差し色で光らせる修飾子。各部品で「再生中だけ光る・動く（停止中は静か）」をそろえるために使う。
 ///
 /// 再生中は明るさをゆっくりゆらがせる（点滅ではなく、消えずに 75〜100% の間を行き来する）。
-/// Reduce Motion がオンのときはゆらぎを止め、一定の明るさで光らせる。停止中は発光しない
+/// Reduce Motion がオンのとき（とスクリーンショットの撮影モード）はゆらぎを止め、一定の明るさで光らせる。停止中は発光しない
 struct NeonGlow: ViewModifier {
     let color: Color
     let isActive: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.freezesAnimations) private var freezesAnimations
 
     func body(content: Content) -> some View {
-        // ゆらがせないとき（停止中・Reduce Motion）は描画の更新も止める
-        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !isActive || reduceMotion)) { context in
+        // ゆらがせないとき（停止中・Reduce Motion・撮影モード）は描画の更新も止める
+        let isSteady = reduceMotion || freezesAnimations
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !isActive || isSteady)) { context in
             let intensity = Self.intensity(
                 at: context.date.timeIntervalSinceReferenceDate,
                 isActive: isActive,
-                reduceMotion: reduceMotion
+                reduceMotion: isSteady
             )
             content
                 .shadow(color: color.opacity(0.9 * intensity), radius: Theme.glowRadius * 0.5 * intensity)

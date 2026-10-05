@@ -16,10 +16,11 @@ struct OscilloscopeView: View {
     let readSamples: (Int) -> [Float]
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.freezesAnimations) private var freezesAnimations
 
     var body: some View {
-        // 停止中は描画の更新も止める
-        TimelineView(.animation(minimumInterval: reduceMotion ? 0.5 : 1.0 / 30, paused: !isPlaying)) { _ in
+        // 停止中（と撮影モード）は描画の更新も止める
+        TimelineView(.animation(minimumInterval: reduceMotion ? 0.5 : 1.0 / 30, paused: !isPlaying || freezesAnimations)) { _ in
             let samples = isPlaying
                 ? Oscilloscope.triggeredWindow(readSamples(Oscilloscope.readLength), length: Oscilloscope.windowLength)
                 : []
