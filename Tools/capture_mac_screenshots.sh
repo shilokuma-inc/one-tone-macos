@@ -92,22 +92,30 @@ trap 'status=$?; if [ "$status" -eq 0 ] && [ "$FINISHED" -ne 1 ]; then status=1;
 
 # ウィンドウが出ないなど、撮れなかったときの手がかりをログと artifact に残す
 diagnose() {
+    # 診断の途中で止まらないよう、ここだけ set -e / pipefail を外す
+    set +e +o pipefail
     echo "::group::診断"
+    echo "セッション: $(launchctl managername 2>/dev/null) / ユーザー: $(id -un) / ディスプレイ: $(system_profiler SPDisplaysDataType 2>/dev/null | grep -E 'Resolution|UI Looks' | tr -s ' ' | paste -sd ';' -)"
     echo "プロセス:"
     pgrep -fl "$EXECUTABLE_NAME" || echo "  （無し）"
+    if [ -n "${APP_PID:-}" ] && kill -0 "$APP_PID" 2>/dev/null; then
+        echo "メインスレッドの様子（sample）:"
+        sample "$APP_PID" 2 2>/dev/null | sed -n '/Call graph/,/^Total number/p' | head -60
+    fi
     echo "画面に出ているウィンドウ:"
-    "$TOOLS_BIN/mac_window" --list || true
+    "$TOOLS_BIN/mac_window" --list
     echo "クラッシュレポート:"
     ls -t ~/Library/Logs/DiagnosticReports 2>/dev/null | grep -i "$EXECUTABLE_NAME" | head -2 | while IFS= read -r report; do
         echo "--- $report"
-        head -c 6000 ~/Library/Logs/DiagnosticReports/"$report" || true
+        head -c 6000 ~/Library/Logs/DiagnosticReports/"$report"
         echo
     done
     echo "アプリのログ:"
-    log show --last 3m --style compact --predicate "process == \"$EXECUTABLE_NAME\"" 2>/dev/null | tail -40 || true
+    log show --last 3m --style compact --predicate "process == \"$EXECUTABLE_NAME\"" 2>/dev/null | tail -60
     mkdir -p "$SCREENSHOTS_DIR/$DISPLAY_TYPE/_diagnostics"
     screencapture -x "$SCREENSHOTS_DIR/$DISPLAY_TYPE/_diagnostics/screen.png" || echo "画面全体の screencapture に失敗しました"
     echo "::endgroup::"
+    set -e -o pipefail
 }
 
 # アプリを起動し、ウィンドウが出るまで待つ。ウィンドウの番号と幅（pt）を WINDOW_ID / WINDOW_WIDTH に入れる
