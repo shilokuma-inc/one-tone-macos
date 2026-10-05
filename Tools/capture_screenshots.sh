@@ -8,7 +8,7 @@ set -euo pipefail
 #
 # 撮る画面と機種は AppStore/screenshots.json、言語は AppStore/languages.json で決める。
 # 画面ごと・言語ごとにアプリを起動し直し、起動引数で「撮影モード」「撮る画面」「言語」を渡す
-# （アプリ側は OneTone/Screenshot/ScreenshotDemo.swift）。1 回ビルドしたものを使い回す。
+# （アプリ側は OneTone/ScreenshotDemo.swift）。1 回ビルドしたものを使い回す。
 #
 # 出力先: $SCREENSHOTS_DIR/<表示サイズ>/<言語>/01_sine.png …（既定は build/screenshots）
 
