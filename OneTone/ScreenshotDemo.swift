@@ -4,6 +4,11 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+import ImageIO
+import UniformTypeIdentifiers
+#endif
 
 /// App Store 用スクリーンショットの撮影モード。
 ///
@@ -13,7 +18,10 @@ import SwiftUI
 ///
 /// 撮影モードでは音を出さず、表示だけを「再生中」にする（`AudioManager.presentAsPlaying`）。
 /// また、撮影スクリプトは「連続で撮った 2 枚が一致するまで待つ」ので、タイトルの色相の回転や発光のゆらぎのような
-/// 止まらないアニメーションは `\.freezesAnimations` で止める
+/// 止まらないアニメーションは `\.freezesAnimations` で止める。
+///
+/// macOS では `-screenshot-output <PNG のパス>` も渡すと、画面に出さないウィンドウで画面を描いて PNG に保存し、すぐ終了する。
+/// CI のランナーにはディスプレイが無くウィンドウが作られないため、ウィンドウの撮影（screencapture）は使えない
 enum ScreenshotDemo {
     /// 撮る画面。`rawValue` が `-screenshot-scene` に渡す名前で、`AppStore/screenshots.json` の scene と一致させる
     enum Scene: String, CaseIterable {
@@ -51,19 +59,103 @@ enum ScreenshotDemo {
 
     /// 起動引数から撮る画面を読む。指定が無い・知らない名前のときは最初の画面にする
     static func scene(from arguments: [String]) -> Scene {
-        guard let index = arguments.firstIndex(of: "-screenshot-scene"),
-              arguments.indices.contains(index + 1),
-              let scene = Scene(rawValue: arguments[index + 1]) else {
-            return Scene.allCases[0]
-        }
-        return scene
+        argument("-screenshot-scene", in: arguments).flatMap(Scene.init(rawValue:)) ?? Scene.allCases[0]
     }
 
-    /// macOS で撮影するときのウィンドウの中身の大きさ（pt）。撮影モードでないときは nil（ふだんどおり自由に変えられる）。
+    /// `-名前 値` の形の起動引数の値。無ければ nil
+    static func argument(_ name: String, in arguments: [String]) -> String? {
+        guard let index = arguments.firstIndex(of: name), arguments.indices.contains(index + 1) else { return nil }
+        return arguments[index + 1]
+    }
+
+    #if os(macOS)
+    /// 描き出す画面の大きさ（pt）。2 枚のパネルが横に並ぶ幅（`DeckLayout.sideBySideMinWidth` 以上）で、
+    /// 2 倍で描くと 2560x1600 px になり、撮影スクリプトが 2880x1800 のキャンバスに合成する
+    static let renderSize = CGSize(width: 1280, height: 800)
+    /// Retina 相当の 2 倍で描く。ディスプレイの有無や倍率によらず、手元と CI で同じ寸法になる
+    static let renderScale: CGFloat = 2
+
+    /// `-screenshot-output` で指定された保存先。撮影モードでないか、指定が無ければ nil（ふだんどおりウィンドウを出す）
+    static let outputURL: URL? = isEnabled
+        ? argument("-screenshot-output", in: ProcessInfo.processInfo.arguments).map { URL(fileURLWithPath: $0) }
+        : nil
+
+    /// 保存先が指定されていれば、画面を PNG に描き出して終了する。`OneToneApp.init` から呼ぶ。
     ///
-    /// 撮影スクリプトはウィンドウの画像を 1440x900（Retina では 2880x1800）のキャンバスに合成するので、
-    /// タイトルバーを含めてもそこに収まり、かつ 2 枚のパネルが横に並ぶ幅（`DeckLayout.sideBySideMinWidth` 以上）にする
-    static let macWindowContentSize: CGSize? = isEnabled ? CGSize(width: 1280, height: 800) : nil
+    /// `ImageRenderer` は macOS の `ScrollView` / `Slider` / `TextField`（AppKit 製）を描けないので、
+    /// `NSHostingView` を画面外のウィンドウに載せて `cacheDisplay(in:to:)` でビットマップに描く。
+    /// ウィンドウは画面に出さないため、ディスプレイの無い CI のランナーでも描ける
+    @MainActor
+    static func renderIfRequested() {
+        guard let scene, let outputURL else { return }
+        _ = NSApplication.shared
+        let content = ContentView(screenshotScene: scene)
+            .environment(\.freezesAnimations, true)
+            .frame(width: renderSize.width, height: renderSize.height)
+        let hostingView = NSHostingView(rootView: content)
+        hostingView.frame = NSRect(origin: .zero, size: renderSize)
+        // 画面外に置いたウィンドウに載せる。ウィンドウが無いと SwiftUI がレイアウト・描画を進めない
+        let window = NSWindow(
+            contentRect: NSRect(x: -100_000, y: -100_000, width: renderSize.width, height: renderSize.height),
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+        window.isReleasedWhenClosed = false
+        window.contentView = hostingView
+        hostingView.layoutSubtreeIfNeeded()
+        // 初回のレイアウトと描画（TimelineView の最初のフレームなど）が済むまで少し回す
+        RunLoop.current.run(until: Date(timeIntervalSinceNow: 1))
+        hostingView.layoutSubtreeIfNeeded()
+
+        let pixelWidth = Int(renderSize.width * renderScale)
+        let pixelHeight = Int(renderSize.height * renderScale)
+        guard let bitmap = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: pixelWidth,
+            pixelsHigh: pixelHeight,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .calibratedRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        ) else {
+            FileHandle.standardError.write(Data("ビットマップを作れませんでした\n".utf8))
+            exit(1)
+        }
+        // ビットマップのピクセル数と pt の大きさを分けて、2 倍で描かせる
+        bitmap.size = renderSize
+        hostingView.cacheDisplay(in: hostingView.bounds, to: bitmap)
+        guard let image = bitmap.cgImage else {
+            FileHandle.standardError.write(Data("画面を描けませんでした\n".utf8))
+            exit(1)
+        }
+        guard let destination = CGImageDestinationCreateWithURL(outputURL as CFURL, UTType.png.identifier as CFString, 1, nil) else {
+            FileHandle.standardError.write(Data("\(outputURL.path) を作れませんでした\n".utf8))
+            exit(1)
+        }
+        CGImageDestinationAddImage(destination, image, nil)
+        guard CGImageDestinationFinalize(destination) else {
+            FileHandle.standardError.write(Data("\(outputURL.path) を保存できませんでした\n".utf8))
+            exit(1)
+        }
+        print("\(outputURL.path)  \(image.width)x\(image.height)")
+        exit(0)
+    }
+    #endif
+}
+
+extension AudioManager {
+    /// 撮影モードなら、音を出さずに再生中の表示にした `AudioManager` を返す。そうでなければふだんどおり
+    static func forScreenshot(_ scene: ScreenshotDemo.Scene?) -> AudioManager {
+        guard let scene else { return AudioManager() }
+        // 音を出さないので AVAudioEngine は動かさない（動いていると presentAsPlaying の波形が無音で上書きされる）
+        let manager = AudioManager(startsEngine: false)
+        manager.presentAsPlaying(frequency: scene.frequency, volume: scene.volume, waveform: scene.waveform)
+        return manager
+    }
 }
 
 private struct FreezesAnimationsKey: EnvironmentKey {

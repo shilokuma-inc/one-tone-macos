@@ -18,6 +18,21 @@ final class ScreenshotDemoTests: XCTestCase {
         XCTAssertEqual(ScreenshotDemo.scene(from: ["-screenshot-demo", "-screenshot-scene", "noise"]), .sine)
     }
 
+    func testArgumentValueIsReadOnlyWhenPresent() {
+        XCTAssertEqual(ScreenshotDemo.argument("-screenshot-output", in: ["-screenshot-output", "/tmp/a.png"]), "/tmp/a.png")
+        XCTAssertNil(ScreenshotDemo.argument("-screenshot-output", in: ["-screenshot-output"]))
+        XCTAssertNil(ScreenshotDemo.argument("-screenshot-output", in: ["-screenshot-demo"]))
+    }
+
+    func testAudioManagerForScreenshotPresentsSceneWithoutEngine() {
+        let manager = AudioManager.forScreenshot(.sawtooth)
+        XCTAssertTrue(manager.isPlaying)
+        XCTAssertFalse(manager.audioEngine.isRunning)
+        XCTAssertEqual(manager.currentFrequency, 100)
+        XCTAssertEqual(manager.currentWaveform, .sawtooth)
+        XCTAssertFalse(AudioManager.forScreenshot(nil).isPlaying)
+    }
+
     func testEachSceneHasDistinctWaveform() {
         // 3 枚のスクリーンショットで別々の波形を見せる前提なので、重複したら設定ミス
         let waveforms = ScreenshotDemo.Scene.allCases.map(\.waveform)

@@ -44,8 +44,8 @@ xcodebuild test -project OneTone.xcodeproj -scheme OneTone -destination 'platfor
   音は出さず表示だけ再生中にし（`AudioManager.presentAsPlaying`）、止まらないアニメーションは `\.freezesAnimations` で止める
   （撮影スクリプトは「連続 2 枚が一致するまで待つ」ため）。撮る画面を変えるときは `AppStore/screenshots.json` の scenes と `ScreenshotDemo.Scene` を合わせて直す
 - 手元で撮るなら、iOS は `Tools/capture_screenshots.sh APP_IPHONE_67`、macOS は `Tools/capture_mac_screenshots.sh`（出力は `build/screenshots/`）。
-  macOS は `open` で起動したウィンドウを `screencapture -l` で撮り、1440x900（Retina は 2880x1800）のキャンバスに合成する。
-  実行したマシンの Screen Recording の許可が要る
+  macOS はウィンドウを撮るのではなく、アプリが `-screenshot-output` で画面外の `NSHostingView` を 2 倍のビットマップに描いて PNG にし
+  （CI のランナーにはディスプレイが無くウィンドウが作られないため）、2880x1800 のキャンバスに合成する。撮影用ビルドだけ App Sandbox を外す
 - 説明文の JSON は App Store Connect の現在値を正とする。初回や手で編集されたあとは `Metadata/App Store` を `mode: export` で実行し、
   Job Summary / artifact の JSON を `AppStore/metadata/` に取り込んでから `dry-run` で差分ゼロを確かめる。手元の検査は `python3 Tools/upload_metadata.py --check`
 - 認証は Organization secrets の App Store Connect API Key（`APPLE_API_KEY_*`）。手元に .p8 は無いので、App Store Connect の状態確認は CI の dry-run で行う

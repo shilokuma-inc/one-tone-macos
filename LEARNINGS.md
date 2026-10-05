@@ -7,13 +7,11 @@
 
 ## macOS のスクリーンショット撮影（Tools/capture_mac_screenshots.sh）
 
-- App Sandbox 付きの `.app` の実行ファイルを直接起動すると、プロセスは生きるのにウィンドウが 1 つも作られない（メニューバー相当の 1512x33 のウィンドウだけが並ぶ）。`open -n -a <app> --args …` で起動する（2026-10-05）
-- `-ApplePersistenceIgnoreState YES` を起動引数に付けると、SwiftUI の `WindowGroup` がウィンドウを 1 つも出さなくなる。ウィンドウの復元を切る目的でも付けない（2026-10-05）
-- `open` で起動したプロセスのコマンドラインはシンボリックリンクを解決したパス（`/var/…` → `/private/var/…`）になる。`pgrep -f` で PID を探すときは `pwd -P` で解決したパスで突き合わせる（2026-10-05）
-- 起動直後に `CGWindowListCopyWindowInfo` で取ったウィンドウ番号は、数秒後に無効になることがある（`screencapture: could not create image from window`）。番号は撮る直前に毎回引き直す（2026-10-05）
-- アプリを `kill` した直後に次を `open` すると、次のウィンドウが出ないことがある。プロセスが消えるのを待ってから 1 秒ほど空ける（2026-10-05）
-- macOS では起動時に最初の `TextField` へフォーカスが当たり、中の数字が選択された見た目で写る。撮影モードでは `@FocusState` を少し待ってから false にして外す（2026-10-05）
-- ウィンドウの中身を 1280x800 pt に固定すると、タイトルバー込みで 1280x832 pt（Retina で 2560x1664 px）になり、2880x1800 のキャンバスに収まる（2026-10-05）
+- GitHub の macOS ランナーは Aqua セッションだがディスプレイが無い（`system_profiler SPDisplaysDataType` が空）。SwiftUI の `WindowGroup` はウィンドウを 1 つも作らず、`CGWindowListCopyWindowInfo` にも何も出ないので、`screencapture -l` や XCUITest のようなウィンドウ前提の撮影は使えない。アプリ内で `NSHostingView` を画面外の `NSWindow` に載せ `cacheDisplay(in:to:)` で描くとディスプレイ無しでも描ける（2026-10-05）
+- `ImageRenderer` は macOS の `ScrollView` / `Slider` / `TextField`（AppKit 製の部品）を描けず、背景だけの画像になる。`NSHostingView.cacheDisplay` なら全部描ける。2 倍で描くには `NSBitmapImageRep` を 2 倍のピクセル数で作り `size` を pt の大きさにしてから渡す（2026-10-05）
+- `NSHostingView` の描画はウィンドウに載せて RunLoop を 1 秒ほど回してから。載せずに描くと SwiftUI がレイアウトを進めず空になる（2026-10-05）
+- App Sandbox 付きのビルドは指定した保存先に PNG を書けない。撮影用のビルドだけ `CODE_SIGN_ENTITLEMENTS= ENABLE_APP_SANDBOX=NO` で外す（配布ビルドには影響しない）（2026-10-05）
+- 参考（ウィンドウを撮る方式を試したときの癖）: App Sandbox 付きの実行ファイルを直接起動するとウィンドウが出ない（`open -n -a` なら出る）。`-ApplePersistenceIgnoreState YES` を付けると `WindowGroup` がウィンドウを出さない。`open` で起動したプロセスのパスは `/private/var/…` に解決される。起動直後のウィンドウ番号は数秒で無効になることがある。起動時に最初の `TextField` へフォーカスが当たり数字が選択表示になる（2026-10-05）
 
 ## iOS のスクリーンショット撮影（Tools/capture_screenshots.sh）
 
