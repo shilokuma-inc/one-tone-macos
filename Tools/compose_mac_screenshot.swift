@@ -3,7 +3,7 @@
 //   swiftc -O Tools/compose_mac_screenshot.swift -o compose_mac_screenshot
 //   ./compose_mac_screenshot <画面の PNG> <出力 PNG> <画面の幅 pt> [<キャンバス pt。既定 1440x900>]
 //
-// アプリが ImageRenderer で描き出した画面（1280x800 pt を 2 倍で描いた 2560x1600 px）は、そのままでは
+// アプリが画面外ウィンドウの NSHostingView を cacheDisplay で描き出した画面（1280x800 pt を 2 倍で描いた 2560x1600 px）は、そのままでは
 // App Store Connect の Mac の寸法（1280x800 / 1440x900 / 2560x1600 / 2880x1800）に合わない。
 // そこで、画像の幅と pt での幅から倍率（1x / 2x）を求め、キャンバス（pt）× 倍率のピクセルの
 // 背景（アプリと同じ暗いグラデーション）を敷いて、画面を角丸にして中央に置く。収まらないときは縮めて収める。

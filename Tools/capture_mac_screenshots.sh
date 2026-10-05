@@ -8,7 +8,7 @@ set -euo pipefail
 #
 # 撮る画面は AppStore/screenshots.json、言語は AppStore/languages.json で決める（iOS と共通）。
 # macOS 向けにビルドした .app を、画面ごとに起動引数「撮影モード」「撮る画面」「保存先」「言語」付きで起動する。
-# アプリは ImageRenderer で画面を 1280x800 pt（2 倍の 2560x1600 px）の PNG に描いてすぐ終了する
+# アプリは画面外ウィンドウの NSHostingView を cacheDisplay で 1280x800 pt（2 倍の 2560x1600 px）の PNG に描いてすぐ終了する
 # （OneTone/ScreenshotDemo.swift）。CI のランナーにはディスプレイが無くウィンドウが作られないため、
 # ウィンドウを screencapture で撮る方式は使えない。描いた画面は Tools/compose_mac_screenshot.swift で
 # App Store が受け付ける 2880x1800 のキャンバスに合成する。
