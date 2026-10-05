@@ -85,7 +85,10 @@ cleanup() {
     fi
     rm -rf "$TOOLS_BIN"
 }
-trap cleanup EXIT
+# bash 3.2 では unbound variable で止まったとき EXIT トラップに終了コード 0 が渡り、失敗したのにステップが成功扱いになる。
+# 最後まで到達した印（FINISHED）が無ければ失敗として返す
+FINISHED=0
+trap 'status=$?; if [ "$status" -eq 0 ] && [ "$FINISHED" -ne 1 ]; then status=1; fi; cleanup; exit "$status"' EXIT
 
 # アプリを起動し、ウィンドウが出るまで待つ。ウィンドウの番号と幅（pt）を WINDOW_ID / WINDOW_WIDTH に入れる
 launch_and_wait_window() {
@@ -198,4 +201,5 @@ python3 Tools/verify_screenshots.py \
     --directory "$SCREENSHOTS_DIR/$DISPLAY_TYPE" \
     --sizes "$($CONFIG sizes "$DISPLAY_TYPE" | paste -sd, -)"
 
+FINISHED=1
 echo "$SCREENSHOTS_DIR/$DISPLAY_TYPE に保存しました"
