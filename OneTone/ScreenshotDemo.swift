@@ -52,7 +52,10 @@ enum ScreenshotDemo {
         var volume: Double { 0.8 }
     }
 
-    static let isEnabled = ProcessInfo.processInfo.arguments.contains("-screenshot-demo")
+    /// 撮影モードにする起動引数
+    static let launchArgument = "-screenshot-demo"
+
+    static let isEnabled = ProcessInfo.processInfo.arguments.contains(launchArgument)
 
     /// 撮る画面。撮影モードでないときは nil
     static let scene: Scene? = isEnabled ? scene(from: ProcessInfo.processInfo.arguments) : nil
