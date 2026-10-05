@@ -18,6 +18,9 @@ struct ContentView: View {
     @State private var frequencyText: String
     @State private var volume: Double
     @State private var waveform: Waveform
+    /// チュートリアルを閉じたことがあるか。Skip / 完了 / 閉じる のどれでも立てる
+    @AppStorage(Tutorial.hasSeenKey) private var hasSeenTutorial = false
+    @State private var isShowingTutorial = false
     /// 撮影モードで、開いた直後に見える位置まで送る部品
     private let initialScrollTarget: Section?
 
@@ -73,10 +76,37 @@ struct ContentView: View {
                 }
             }
         }
+        .overlay(alignment: .topLeading) {
+            TutorialButton(action: openTutorial)
+        }
         #if os(macOS)
         .frame(minWidth: DeckLayout.minimumWindowSize.width, minHeight: DeckLayout.minimumWindowSize.height)
         #endif
         .themedScreen()
+        // シートを下へスワイプして閉じたときも、閉じる操作として既読にする
+        .sheet(isPresented: $isShowingTutorial, onDismiss: { finishTutorial(.closed) }) {
+            TutorialView(onDismiss: finishTutorial)
+        }
+        .onAppear {
+            // 初回起動時だけ自動で出す（撮影モードと -skip-tutorial 付きの起動では出さない）
+            if Tutorial.shouldPresentAutomatically(hasSeen: hasSeenTutorial) {
+                openTutorial()
+            }
+        }
+    }
+
+    /// チュートリアルを開く。説明を聞いている間に鳴り続けないよう、メイン画面の音は止める
+    private func openTutorial() {
+        audioManager.stopTone()
+        isShowingTutorial = true
+    }
+
+    /// チュートリアルを閉じる。閉じ方によらず既読にする（表示しただけでは既読にしない）
+    private func finishTutorial(_ dismissal: TutorialDismissal) {
+        if dismissal.marksAsSeen {
+            hasSeenTutorial = true
+        }
+        isShowingTutorial = false
     }
     
     /// 周波数を決める部品（ノブ・表示・スライダー・数値入力・プリセット）
