@@ -15,11 +15,18 @@ struct TutorialView: View {
     let onDismiss: (TutorialDismissal) -> Void
 
     @State private var pager: TutorialPager
+    /// 周波数・波形ページの試聴。メイン画面とは別の音で鳴らす
+    @StateObject private var trialPlayer: TutorialTrialPlayer
 
-    init(pages: [TutorialPage] = Tutorial.pages, onDismiss: @escaping (TutorialDismissal) -> Void) {
+    init(
+        pages: [TutorialPage] = Tutorial.pages,
+        trialPlayer: @autoclosure @escaping () -> TutorialTrialPlayer = TutorialTrialPlayer(),
+        onDismiss: @escaping (TutorialDismissal) -> Void
+    ) {
         self.pages = pages
         self.onDismiss = onDismiss
         _pager = State(initialValue: TutorialPager(pageCount: pages.count))
+        _trialPlayer = StateObject(wrappedValue: trialPlayer())
     }
 
     var body: some View {
@@ -32,6 +39,10 @@ struct TutorialView: View {
         .frame(width: TutorialLayout.macSize.width, height: TutorialLayout.macSize.height)
         #endif
         .themedScreen()
+        // 閉じたら試聴中の音を止める（ページを移ったときは showPage で止める）
+        .onDisappear {
+            trialPlayer.stop()
+        }
     }
 
     // MARK: - 上部（閉じる・Skip）
@@ -76,14 +87,14 @@ struct TutorialView: View {
         #if os(iOS)
         TabView(selection: pageSelection) {
             ForEach(Array(pages.enumerated()), id: \.element.id) { index, page in
-                TutorialPageView(page: page)
+                TutorialPageView(page: page, trialPlayer: trialPlayer)
                     .tag(index)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
         .indexViewStyle(.page(backgroundDisplayMode: .always))
         #else
-        TutorialPageView(page: pages[pager.index])
+        TutorialPageView(page: pages[pager.index], trialPlayer: trialPlayer)
             .id(pager.index)
             .transition(.opacity)
         #endif
@@ -91,7 +102,14 @@ struct TutorialView: View {
 
     /// `TabView` の選択とページ送りの状態をつなぐ
     private var pageSelection: Binding<Int> {
-        Binding(get: { pager.index }, set: { pager.show($0) })
+        Binding(get: { pager.index }, set: { showPage($0) })
+    }
+
+    /// ページを移る。前のページで試聴中の音は止める
+    private func showPage(_ index: Int) {
+        guard index != pager.index else { return }
+        trialPlayer.stop()
+        withAnimation { pager.show(index) }
     }
 
     // MARK: - 下部（ページ送り・完了）
@@ -100,7 +118,7 @@ struct TutorialView: View {
         HStack(spacing: 16) {
             #if os(macOS)
             Button("Back") {
-                withAnimation { pager.back() }
+                showPage(pager.index - 1)
             }
             .buttonStyle(TutorialSecondaryButtonStyle())
             .opacity(pager.isFirstPage ? 0 : 1)
@@ -125,7 +143,7 @@ struct TutorialView: View {
             if pager.isLastPage {
                 onDismiss(.completed)
             } else {
-                withAnimation { pager.next() }
+                showPage(pager.index + 1)
             }
         } label: {
             Text(pager.isLastPage ? "Get Started" : "Next")
@@ -138,9 +156,10 @@ struct TutorialView: View {
     }
 }
 
-/// 1 ページ分の表示（画面のスクリーンショット・タイトル・本文・注意書き）
+/// 1 ページ分の表示（画面のスクリーンショット・タイトル・本文・試聴・注意書き）
 struct TutorialPageView: View {
     let page: TutorialPage
+    let trialPlayer: TutorialTrialPlayer
 
     var body: some View {
         VStack(spacing: 16) {
@@ -165,6 +184,10 @@ struct TutorialPageView: View {
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
 
+                if let trial = page.trial {
+                    TutorialTrialButtons(sounds: trial.sounds, player: trialPlayer)
+                }
+
                 if let caution = page.caution {
                     Label(caution, systemImage: "exclamationmark.triangle.fill")
                         .font(.callout.weight(.semibold))
@@ -183,6 +206,45 @@ struct TutorialPageView: View {
         // ページインジケーターと重ならないよう下に余白をとる
         .padding(.bottom, 48)
         #endif
+    }
+}
+
+/// 試聴のボタン。周波数ページは 1 つ（440 Hz）、波形ページは波形ごとに並べる。
+/// 鳴っているボタンは差し色の枠とスピーカーのアイコンで示し、もう一度押すと止まる
+struct TutorialTrialButtons: View {
+    let sounds: [TutorialTrialPlayer.Sound]
+    @ObservedObject var player: TutorialTrialPlayer
+
+    var body: some View {
+        HStack(spacing: 8) {
+            ForEach(sounds, id: \.self) { sound in
+                let isPlaying = player.playing == sound
+                Button {
+                    player.toggle(sound)
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: isPlaying ? "speaker.wave.2.fill" : "play.fill")
+                            .frame(width: 20)
+                        Text(label(for: sound))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                    }
+                    .font(.system(.callout, design: .rounded).weight(isPlaying ? .bold : .medium))
+                    .foregroundStyle(isPlaying ? Theme.accent : Theme.textPrimary)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 10)
+                    .frame(maxWidth: sounds.count == 1 ? 200 : .infinity)
+                }
+                .buttonStyle(WaveformButtonStyle(isSelected: isPlaying))
+                .accessibilityLabel(isPlaying ? "Stop \(label(for: sound))" : "Play \(label(for: sound))")
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    /// 1 つだけなら周波数、波形ごとなら波形の名前を出す
+    private func label(for sound: TutorialTrialPlayer.Sound) -> String {
+        sounds.count == 1 ? "\(FrequencyInput.presetLabel(sound.frequency))" : sound.waveform.displayName
     }
 }
 
@@ -241,7 +303,7 @@ enum TutorialLayout {
     TutorialView(onDismiss: { _ in })
 }
 
-#Preview("Volume page") {
-    TutorialPageView(page: Tutorial.pages[3])
+#Preview("Waveform page") {
+    TutorialPageView(page: Tutorial.pages[4], trialPlayer: TutorialTrialPlayer(makeAudioManager: { AudioManager(startsEngine: false) }))
         .themedScreen()
 }
