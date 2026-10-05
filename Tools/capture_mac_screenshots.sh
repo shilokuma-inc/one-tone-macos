@@ -115,7 +115,7 @@ launch_and_wait_window() {
         sleep 1
         elapsed=$((elapsed + 1))
     done
-    echo "::error::${WINDOW_TIMEOUT} 秒たってもウィンドウが出ませんでした（scene: $scene）" >&2
+    echo "::error::${WINDOW_TIMEOUT} 秒たってもウィンドウが出ませんでした（scene: ${scene}）" >&2
     return 1
 }
 
@@ -176,7 +176,7 @@ while IFS=$'\t' read -r -u 3 language apple_language apple_locale store_locale; 
     # 撮り直しのたびに古い画像が混ざらないよう、言語ごとに作り直す
     rm -rf "$destination"
     mkdir -p "$destination"
-    echo "::group::$DISPLAY_TYPE / $language（$store_locale）"
+    echo "::group::$DISPLAY_TYPE / ${language}（${store_locale}）"
     while IFS=$'\t' read -r -u 4 file scene; do
         launch_and_wait_window "$scene" "$apple_language" "$apple_locale"
         raw="$(mktemp -d)/window.png"
