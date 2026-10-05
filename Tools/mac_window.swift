@@ -10,8 +10,8 @@
 import CoreGraphics
 import Foundation
 
-guard CommandLine.arguments.count == 2, let pid = Int32(CommandLine.arguments[1]) else {
-    FileHandle.standardError.write(Data("使い方: mac_window <pid>\n".utf8))
+guard CommandLine.arguments.count == 2 else {
+    FileHandle.standardError.write(Data("使い方: mac_window <pid> | mac_window --list\n".utf8))
     exit(2)
 }
 
@@ -19,6 +19,23 @@ guard let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDes
     as? [[String: Any]] else {
     FileHandle.standardError.write(Data("ウィンドウの一覧を取れませんでした\n".utf8))
     exit(1)
+}
+
+// 診断用: 画面に出ている通常のウィンドウをすべて出す（撮影が失敗したときに、何が出ているかを見るため）
+if CommandLine.arguments[1] == "--list" {
+    for info in windows {
+        guard let layer = info[kCGWindowLayer as String] as? Int, layer == 0,
+              let bounds = info[kCGWindowBounds as String] as? [String: Double] else { continue }
+        let owner = info[kCGWindowOwnerName as String] as? String ?? "?"
+        let pid = info[kCGWindowOwnerPID as String] as? Int32 ?? 0
+        print("\(owner) (pid \(pid)) \(Int(bounds["Width"] ?? 0))x\(Int(bounds["Height"] ?? 0))")
+    }
+    exit(0)
+}
+
+guard let pid = Int32(CommandLine.arguments[1]) else {
+    FileHandle.standardError.write(Data("pid が数値ではありません: \(CommandLine.arguments[1])\n".utf8))
+    exit(2)
 }
 
 // レイヤー 0 が通常のウィンドウ。メニューやツールチップなどは別のレイヤーに出る

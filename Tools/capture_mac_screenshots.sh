@@ -90,6 +90,26 @@ cleanup() {
 FINISHED=0
 trap 'status=$?; if [ "$status" -eq 0 ] && [ "$FINISHED" -ne 1 ]; then status=1; fi; cleanup; exit "$status"' EXIT
 
+# ウィンドウが出ないなど、撮れなかったときの手がかりをログと artifact に残す
+diagnose() {
+    echo "::group::診断"
+    echo "プロセス:"
+    pgrep -fl "$EXECUTABLE_NAME" || echo "  （無し）"
+    echo "画面に出ているウィンドウ:"
+    "$TOOLS_BIN/mac_window" --list || true
+    echo "クラッシュレポート:"
+    ls -t ~/Library/Logs/DiagnosticReports 2>/dev/null | grep -i "$EXECUTABLE_NAME" | head -2 | while IFS= read -r report; do
+        echo "--- $report"
+        head -c 6000 ~/Library/Logs/DiagnosticReports/"$report" || true
+        echo
+    done
+    echo "アプリのログ:"
+    log show --last 3m --style compact --predicate "process == \"$EXECUTABLE_NAME\"" 2>/dev/null | tail -40 || true
+    mkdir -p "$SCREENSHOTS_DIR/$DISPLAY_TYPE/_diagnostics"
+    screencapture -x "$SCREENSHOTS_DIR/$DISPLAY_TYPE/_diagnostics/screen.png" || echo "画面全体の screencapture に失敗しました"
+    echo "::endgroup::"
+}
+
 # アプリを起動し、ウィンドウが出るまで待つ。ウィンドウの番号と幅（pt）を WINDOW_ID / WINDOW_WIDTH に入れる
 launch_and_wait_window() {
     scene="$1"
@@ -119,6 +139,7 @@ launch_and_wait_window() {
         elapsed=$((elapsed + 1))
     done
     echo "::error::${WINDOW_TIMEOUT} 秒たってもウィンドウが出ませんでした（scene: ${scene}）" >&2
+    diagnose
     return 1
 }
 

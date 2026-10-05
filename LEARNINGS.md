@@ -19,6 +19,11 @@
 
 - `simctl terminate` の直後に `simctl launch` すると、アプリが出る前のホーム画面を「連続 2 枚が一致した」として撮ってしまうことがある。終了と起動の間に数秒空ける（`RELAUNCH_INTERVAL`）（2026-10-05）
 
+## GitHub Actions
+
+- `workflow_dispatch` だけのワークフローは、既定ブランチに無いと `gh workflow run` / REST API から起動できない（404）。一度でも実行されれば登録されて `--ref <ブランチ>` で起動できるので、新規に足すときは一時的に PR ブランチへの `push` トリガーを付けて 1 回動かし、登録後に外す（2026-10-05）
+- ランナーの bash 3.2 では、`set -u` の unbound variable で止まったときに EXIT トラップへ終了コード 0 が渡り、`trap cleanup EXIT` があるとステップが成功扱いになる。`$VAR` の直後に全角文字を置かない（`${VAR}` にする）のに加え、スクリプトの最後で立てる FINISHED フラグをトラップで見て、立っていなければ 1 で終える（2026-10-05）
+
 ## App Store Connect
 
 - iOS と macOS を 1 ターゲット・同じ Bundle ID で配信していても、App Store Connect の `appStoreVersions` は `platform`（`IOS` / `MAC_OS`）ごとに別で、説明文・スクリーンショットの置き場（`appStoreVersionLocalizations`）も別。`filter[platform]` を省くと iOS しか見えない（2026-10-05）
