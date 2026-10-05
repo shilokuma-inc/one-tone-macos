@@ -15,10 +15,11 @@ struct LevelMeterView: View {
     let readSamples: (Int) -> [Float]
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.freezesAnimations) private var freezesAnimations
 
     var body: some View {
-        // 停止中は描画の更新も止める
-        TimelineView(.animation(minimumInterval: reduceMotion ? 0.5 : 1.0 / 30, paused: !isPlaying)) { _ in
+        // 停止中（と撮影モード）は描画の更新も止める
+        TimelineView(.animation(minimumInterval: reduceMotion ? 0.5 : 1.0 / 30, paused: !isPlaying || freezesAnimations)) { _ in
             let decibels = isPlaying ? LevelMeter.rmsDecibels(readSamples(LevelMeter.windowLength)) : -.infinity
             let litCount = LevelMeter.litSegmentCount(decibels: decibels)
             VStack(spacing: 6) {

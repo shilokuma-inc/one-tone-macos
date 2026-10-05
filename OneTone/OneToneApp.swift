@@ -12,6 +12,8 @@ struct OneToneApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                // スクリーンショットの撮影モードでは、止まらないアニメーションを止めて画面を静止させる
+                .environment(\.freezesAnimations, ScreenshotDemo.isEnabled)
         }
     }
 }

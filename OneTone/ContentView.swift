@@ -8,11 +8,14 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var audioManager = AudioManager()
+    // 撮影モードでは音を出さないので、AVAudioEngine は動かさない（表示だけ presentAsPlaying で再生中にする）
+    @StateObject private var audioManager = AudioManager(startsEngine: !ScreenshotDemo.isEnabled)
     @State private var frequency: Double = 20.0
     @State private var frequencyText: String = FrequencyInput.format(20.0)
     @State private var volume: Double = 0.5
     @State private var waveform: Waveform = .sine
+    /// 周波数の数値入力欄のフォーカス。撮影モードで、起動時に当たるフォーカスを外すために持つ
+    @FocusState private var isFrequencyFieldFocused: Bool
     
     var body: some View {
         // 幅で並べ方だけを変え、狭い画面では縦にスクロールして部品が切れないようにする
@@ -47,8 +50,22 @@ struct ContentView: View {
         }
         #if os(macOS)
         .frame(minWidth: DeckLayout.minimumWindowSize.width, minHeight: DeckLayout.minimumWindowSize.height)
+        // 撮影モードでは、撮った画像の寸法がそろうようウィンドウの中身を決まった大きさに固定する（ふだんは nil で無指定）
+        .frame(width: ScreenshotDemo.macWindowContentSize?.width, height: ScreenshotDemo.macWindowContentSize?.height)
         #endif
         .themedScreen()
+        .task {
+            // 撮影モードでは、起動引数で選んだ周波数・波形を表示し、音を出さずに再生中の見た目にする
+            guard let scene = ScreenshotDemo.scene else { return }
+            setFrequency(scene.frequency)
+            setVolume(scene.volume)
+            setWaveform(scene.waveform)
+            audioManager.presentAsPlaying(frequency: scene.frequency, volume: scene.volume, waveform: scene.waveform)
+            // macOS では起動時に最初のテキストフィールドへフォーカスが移り、数字が選択された見た目になる。
+            // スクリーンショットには写したくないので、フォーカスが当たったあとに外す
+            try? await Task.sleep(for: .milliseconds(500))
+            isFrequencyFieldFocused = false
+        }
     }
     
     /// 周波数を決める部品（ノブ・表示・スライダー・数値入力・プリセット）
@@ -61,6 +78,7 @@ struct ContentView: View {
             FrequencySlider(frequency: frequency, onChange: setFrequency)
             
             FrequencyTextField(text: $frequencyText, onSubmit: submitFrequencyText)
+                .focused($isFrequencyFieldFocused)
             
             FrequencyPresetButtons(frequency: frequency, onSelect: setFrequency)
         }

@@ -6,16 +6,17 @@
 import SwiftUI
 
 /// 虹色のタイトル。グラデーションは常に表示し、色相の回転と発光は再生中だけにする（停止中は静か）。
-/// Reduce Motion がオンのときは回転させない
+/// Reduce Motion がオンのとき、またはスクリーンショットの撮影モードのときは回転させない
 struct TitleView: View {
     let isPlaying: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.freezesAnimations) private var freezesAnimations
     /// 回っていた時間だけを数える時計。止めている間の時間を角度に含めず、再開したとき色が飛ばないようにする
     @State private var clock = PausableClock()
 
-    /// 色相を回すか。再生中かつ Reduce Motion がオフのときだけ回す
+    /// 色相を回すか。再生中かつ Reduce Motion がオフで、撮影モードでもないときだけ回す
     private var isAnimating: Bool {
-        isPlaying && !reduceMotion
+        isPlaying && !reduceMotion && !freezesAnimations
     }
 
     var body: some View {

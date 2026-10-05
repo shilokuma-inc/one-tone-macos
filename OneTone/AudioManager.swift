@@ -15,6 +15,8 @@ class AudioManager: ObservableObject {
     static let outputHistoryCapacity = 8192
 
     let audioEngine: AVAudioEngine
+    /// 実際の出力に合わせたサンプルレート（出力デバイスが無ければ `fallbackSampleRate`）
+    let sampleRate: Double
     private let sourceNode: AVAudioSourceNode
     /// Play / Stop ボタンの活性制御に使うため、UI から購読できるようにする
     @Published private(set) var isPlaying: Bool = false
@@ -33,7 +35,9 @@ class AudioManager: ObservableObject {
     /// レンダーブロックが実際に出力したサンプルの写し。UI は `latestOutputSamples(_:)` で描画のたびに読む
     private let outputSamples: SampleRingBuffer
 
-    init() {
+    /// - Parameter startsEngine: false にすると AVAudioEngine を動かさない（音は出ず、レンダーブロックも呼ばれない）。
+    ///   スクリーンショットの撮影モードで、`presentAsPlaying` により表示だけを再生中にするときに使う
+    init(startsEngine: Bool = true) {
         // セッションを有効にしてから出力フォーマットを読まないと、iOS でサンプルレートが確定しない
         Self.configureAudioSession()
         audioEngine = AVAudioEngine()
@@ -41,7 +45,7 @@ class AudioManager: ObservableObject {
         // サンプルレートは 44.1kHz 固定ではなく実際の出力に合わせる。
         // iOS は 48kHz が既定のため、固定値のままだと出力される周波数が指定値からずれる
         let outputSampleRate = audioEngine.outputNode.outputFormat(forBus: 0).sampleRate
-        let sampleRate = outputSampleRate > 0 ? outputSampleRate : Self.fallbackSampleRate
+        sampleRate = outputSampleRate > 0 ? outputSampleRate : Self.fallbackSampleRate
 
         synthesizer = .allocate(capacity: 1)
         synthesizer.initialize(to: ToneSynthesizer(sampleRate: sampleRate, frequency: currentFrequency, volume: currentVolume, waveform: currentWaveform))
@@ -78,6 +82,7 @@ class AudioManager: ObservableObject {
         let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)
         audioEngine.attach(sourceNode)
         audioEngine.connect(sourceNode, to: audioEngine.mainMixerNode, format: format)
+        guard startsEngine else { return }
         do {
             try audioEngine.start()
         } catch {
@@ -185,6 +190,25 @@ class AudioManager: ObservableObject {
     func stopTone() {
         isRendering.pointee = false
         isPlaying = false
+    }
+
+    /// スクリーンショットの撮影モード用に、音を出さずに表示だけを「再生中」にする。
+    ///
+    /// 波形表示とレベルメーターは出力履歴を読んで描くので、履歴をその周波数・波形で合成したサンプルで満たしておく。
+    /// エンジンを動かしていない（`init(startsEngine: false)`）ときだけ使う。動いていると、停止中のレンダーブロックが
+    /// 履歴を無音で上書きし続け、ここで書いた波形がすぐ消える
+    func presentAsPlaying(frequency: Double, volume: Double, waveform: Waveform) {
+        assert(!audioEngine.isRunning, "presentAsPlaying は AVAudioEngine を動かしていないときだけ使う")
+        updateFrequency(frequency)
+        updateVolume(volume)
+        updateWaveform(waveform)
+        var synthesizer = ToneSynthesizer(sampleRate: sampleRate, frequency: frequency, volume: volume, waveform: waveform)
+        synthesizer.update(frequency: frequency, volume: volume, waveform: waveform, isPlaying: true)
+        // 先頭のフェードインは履歴の古い側に入り、表示に使う末尾は振幅が落ち着いている
+        for _ in 0..<outputSamples.capacity {
+            outputSamples.write(synthesizer.nextSample())
+        }
+        isPlaying = true
     }
 }
 
