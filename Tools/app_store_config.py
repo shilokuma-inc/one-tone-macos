@@ -8,7 +8,7 @@ GitHub Actions のワークフローから使う。設定は 2 つの JSON が�
 
 シェルから使うときはタブ区切りで出す。
 
-    python3 Tools/app_store_config.py languages [en]      # 言語ごとの撮影・反映の設定
+    python3 Tools/app_store_config.py languages [ja]      # 言語ごとの撮影・反映の設定
     python3 Tools/app_store_config.py scenes              # 撮る画面
     python3 Tools/app_store_config.py devices APP_IPHONE_67
     python3 Tools/app_store_config.py sizes APP_IPHONE_67

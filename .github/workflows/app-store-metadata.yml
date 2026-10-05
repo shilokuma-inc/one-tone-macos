@@ -40,7 +40,7 @@ on:
           - macos
         default: both
       languages:
-        description: '反映する言語（カンマ区切り）。空なら languages.json の全言語（en）'
+        description: '反映する言語（カンマ区切り）。空なら languages.json の全言語（ja）'
         required: false
         default: ''
       app_version:

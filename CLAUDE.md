@@ -36,7 +36,7 @@ xcodebuild test -project OneTone.xcodeproj -scheme OneTone -destination 'platfor
 
 | ワークフロー | 反映するもの | 元ネタ |
 | --- | --- | --- |
-| `Screenshots/App Store` | スクリーンショット（iPhone 6.9 inch / iPad 13 inch → iOS、Mac → macOS。言語は en-US） | `AppStore/screenshots.json` / `AppStore/languages.json` |
+| `Screenshots/App Store` | スクリーンショット（iPhone 6.9 inch / iPad 13 inch → iOS、Mac → macOS。言語は ja = App Store Connect の主言語） | `AppStore/screenshots.json` / `AppStore/languages.json` |
 | `Metadata/App Store` | 説明文・キーワード・プロモーションテキスト・URL（`mode`: dry-run（既定）/ upload / export、`platform`: both / ios / macos） | `AppStore/metadata/*.json` |
 | `Verify/App Store metadata` | PR で metadata の欠損・文字数超過と撮影設定の整合を検査 | 同上 |
 

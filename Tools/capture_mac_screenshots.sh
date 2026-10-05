@@ -4,7 +4,7 @@ set -euo pipefail
 # App Store 用のスクリーンショット（macOS、表示サイズ APP_DESKTOP）を全言語・全画面ぶん撮る。
 # iOS は Simulator で撮る Tools/capture_screenshots.sh を使う。
 #
-#   Tools/capture_mac_screenshots.sh [en]
+#   Tools/capture_mac_screenshots.sh [ja]
 #
 # 撮る画面は AppStore/screenshots.json、言語は AppStore/languages.json で決める（iOS と共通）。
 # macOS 向けにビルドした .app を、画面ごとに起動引数「撮影モード」「撮る画面」「言語」付きで起動し直し
