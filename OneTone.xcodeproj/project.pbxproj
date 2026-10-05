@@ -36,6 +36,7 @@
 		4F6D89545B41775C2458796C /* DeckPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F8FA390292E0DE907B7E48 /* DeckPanel.swift */; };
 		5A1C3E7D2F0B4A6E9C8D1B20 /* ScreenshotDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1C3E7D2F0B4A6E9C8D1B21 /* ScreenshotDemo.swift */; };
 		7B2D4F6A1C3E5A7B9D0F1A01 /* Tutorial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A02 /* Tutorial.swift */; };
+		7B2D4F6A1C3E5A7B9D0F1A05 /* TutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A06 /* TutorialView.swift */; };
 		7B2D4F6A1C3E5A7B9D0F1A03 /* TutorialTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A04 /* TutorialTests.swift */; };
 		5A1C3E7D2F0B4A6E9C8D1B22 /* ScreenshotDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1C3E7D2F0B4A6E9C8D1B23 /* ScreenshotDemoTests.swift */; };
 /* End PBXBuildFile section */
@@ -73,6 +74,7 @@
 		A45A8FADF45C3FC1276BA4C4 /* TitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleView.swift; sourceTree = "<group>"; };
 		5A1C3E7D2F0B4A6E9C8D1B21 /* ScreenshotDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDemo.swift; sourceTree = "<group>"; };
 		7B2D4F6A1C3E5A7B9D0F1A02 /* Tutorial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tutorial.swift; sourceTree = "<group>"; };
+		7B2D4F6A1C3E5A7B9D0F1A06 /* TutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialView.swift; sourceTree = "<group>"; };
 		7B2D4F6A1C3E5A7B9D0F1A04 /* TutorialTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialTests.swift; sourceTree = "<group>"; };
 		5A1C3E7D2F0B4A6E9C8D1B23 /* ScreenshotDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDemoTests.swift; sourceTree = "<group>"; };
 		845DEFE340AD8435DBE5E579 /* PlaybackControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackControls.swift; sourceTree = "<group>"; };
@@ -158,6 +160,7 @@
 				A45A8FADF45C3FC1276BA4C4 /* TitleView.swift */,
 				5A1C3E7D2F0B4A6E9C8D1B21 /* ScreenshotDemo.swift */,
 				7B2D4F6A1C3E5A7B9D0F1A02 /* Tutorial.swift */,
+				7B2D4F6A1C3E5A7B9D0F1A06 /* TutorialView.swift */,
 				4F35649C2C04ED720015F5B5 /* OneToneApp.swift */,
 				4F35649E2C04ED720015F5B5 /* ContentView.swift */,
 				4F3564C72C04F2110015F5B5 /* AudioManager.swift */,
@@ -346,6 +349,7 @@
 				7BB99970DCC99ACA4767B00E /* TitleView.swift in Sources */,
 				5A1C3E7D2F0B4A6E9C8D1B20 /* ScreenshotDemo.swift in Sources */,
 				7B2D4F6A1C3E5A7B9D0F1A01 /* Tutorial.swift in Sources */,
+				7B2D4F6A1C3E5A7B9D0F1A05 /* TutorialView.swift in Sources */,
 				4F3564C82C04F2110015F5B5 /* AudioManager.swift in Sources */,
 				4F35649F2C04ED720015F5B5 /* ContentView.swift in Sources */,
 				4F35649D2C04ED720015F5B5 /* OneToneApp.swift in Sources */,
