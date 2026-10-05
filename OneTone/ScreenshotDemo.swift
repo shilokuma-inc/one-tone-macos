@@ -23,7 +23,8 @@ import UniformTypeIdentifiers
 /// macOS では `-screenshot-output <PNG のパス>` も渡すと、画面に出さないウィンドウで画面を描いて PNG に保存し、すぐ終了する。
 /// CI のランナーにはディスプレイが無くウィンドウが作られないため、ウィンドウの撮影（screencapture）は使えない
 enum ScreenshotDemo {
-    /// 撮る画面。`rawValue` が `-screenshot-scene` に渡す名前で、`AppStore/screenshots.json` の scene と一致させる
+    /// 撮る画面。`rawValue` が `-screenshot-scene` に渡す名前。
+    /// App Store 用は `AppStore/screenshots.json` の scene と、チュートリアル用は `Tools/capture_tutorial_screenshots.sh` の一覧と一致させる
     enum Scene: String, CaseIterable {
         /// 440 Hz（A4）のサイン波を再生中
         case sine
@@ -31,25 +32,54 @@ enum ScreenshotDemo {
         case square
         /// 100 Hz のノコギリ波を再生中
         case sawtooth
+        /// チュートリアルの Welcome。440 Hz のサイン波を再生中の画面全体
+        case tutorialWelcome = "tutorial-welcome"
+        /// チュートリアルの Play / Stop。1 kHz の矩形波を再生中（オシロスコープとレベルメーターが動いて見える）
+        case tutorialPlayback = "tutorial-playback"
+        /// チュートリアルの Frequency。Welcome と違う見た目になるよう、プリセットの 1 kHz を選んだ状態で、周波数のパネルが見える位置まで送る
+        case tutorialFrequency = "tutorial-frequency"
+        /// チュートリアルの Volume。音量を下げた状態
+        case tutorialVolume = "tutorial-volume"
+        /// チュートリアルの Waveform。App Store 用で使っていない三角波
+        case tutorialWaveform = "tutorial-waveform"
+
+        /// App Store 用の画面（`AppStore/screenshots.json` に載せるもの）
+        static let appStoreScenes: [Scene] = [.sine, .square, .sawtooth]
 
         var frequency: Double {
             switch self {
-            case .sine: return 440
-            case .square: return 1000
+            case .sine, .tutorialWelcome, .tutorialVolume: return 440
+            case .square, .tutorialPlayback, .tutorialFrequency: return 1000
             case .sawtooth: return 100
+            case .tutorialWaveform: return 220
             }
         }
 
         var waveform: Waveform {
             switch self {
-            case .sine: return .sine
-            case .square: return .square
+            case .sine, .tutorialWelcome, .tutorialFrequency, .tutorialVolume: return .sine
+            case .square, .tutorialPlayback: return .square
             case .sawtooth: return .sawtooth
+            case .tutorialWaveform: return .triangle
             }
         }
 
-        /// 音量。レベルメーターが上の方まで点いて見えるよう、既定の 50% より高くする
-        var volume: Double { 0.8 }
+        /// 音量。レベルメーターが上の方まで点いて見えるよう、既定の 50% より高くする。
+        /// 音量のページだけは「下げた」状態に見えるよう低くする
+        var volume: Double {
+            switch self {
+            case .tutorialVolume: return 0.3
+            default: return 0.8
+            }
+        }
+
+        /// 縦積みの画面（iPhone）で、開いた直後に見える位置まで送る部品。nil なら先頭のまま
+        var scrollTarget: ContentView.Section? {
+            switch self {
+            case .tutorialFrequency: return .frequency
+            default: return nil
+            }
+        }
     }
 
     /// 撮影モードにする起動引数
