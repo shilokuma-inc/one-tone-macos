@@ -13,10 +13,6 @@ name: Screenshots/App Store
 # upload を外せば撮るだけで、結果は artifact から取れる。
 
 on:
-  # 一時的: workflow_dispatch のワークフローは既定ブランチに無いと起動できないため、登録のために push でも動かす（PR のマージ前に外す）
-  push:
-    branches:
-      - feat/app-store-listing-workflows
   workflow_dispatch:
     inputs:
       display_types:

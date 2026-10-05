@@ -17,10 +17,6 @@ name: Metadata/App Store
 # スクリーンショットと違って撮影が要らないので数十秒で終わる。
 
 on:
-  # 一時的: workflow_dispatch のワークフローは既定ブランチに無いと起動できないため、登録のために push でも動かす（PR のマージ前に外す）
-  push:
-    branches:
-      - feat/app-store-listing-workflows
   workflow_dispatch:
     inputs:
       mode:
