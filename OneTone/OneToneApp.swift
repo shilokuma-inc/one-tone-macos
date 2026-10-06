@@ -22,5 +22,11 @@ struct OneToneApp: App {
                 // スクリーンショットの撮影モードでは、止まらないアニメーションを止めて画面を静止させる
                 .environment(\.freezesAnimations, ScreenshotDemo.isEnabled)
         }
+        #if os(macOS)
+        // アプリのメニューの「設定…」（⌘,）で開く設定ウィンドウ。iOS はメイン画面のボタンからシートで開く
+        Settings {
+            SettingsView()
+        }
+        #endif
     }
 }

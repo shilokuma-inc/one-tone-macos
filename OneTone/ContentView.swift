@@ -16,6 +16,9 @@ struct ContentView: View {
     /// 選んだテーマ。保存値が無い・読めないときは既定のテーマ
     @AppStorage(ThemeColor.storageKey) private var storedThemeColor: ThemeColor = .default
     private let isScreenshotDemo: Bool
+    #if os(iOS)
+    @State private var isShowingSettings = false
+    #endif
 
     /// - Parameter screenshotScene: スクリーンショットの撮影モードで撮る画面。渡すと、その周波数・波形・音量を初期値にし、
     ///   音を出さずに再生中の表示にする。画面を出さずに描く経路でも使えるよう、`.task` ではなく初期値で状態を作る
@@ -58,6 +61,12 @@ struct ContentView: View {
             #if os(iOS)
             // 数値入力のキーボードをスクロールで閉じられるようにする（確定は従来どおり onSubmit）
             .scrollDismissesKeyboard(.interactively)
+            // 撮影モードではスクリーンショットの見た目を変えないよう、設定ボタンを出さない
+            .overlay(alignment: .topTrailing) {
+                if !isScreenshotDemo {
+                    settingsButton
+                }
+            }
             #endif
         }
         #if os(macOS)
@@ -65,7 +74,39 @@ struct ContentView: View {
         #endif
         .themedScreen()
         .environment(\.themeColor, ThemeColor.displayed(stored: storedThemeColor, isScreenshotDemo: isScreenshotDemo))
+        #if os(iOS)
+        .sheet(isPresented: $isShowingSettings) {
+            NavigationStack {
+                SettingsView()
+                    .navigationTitle("設定")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("完了") { isShowingSettings = false }
+                        }
+                    }
+            }
+            .presentationDetents([.medium, .large])
+        }
+        #endif
     }
+
+    #if os(iOS)
+    /// 設定（シート）を開くボタン。タイトルと重ならないよう画面の右上に置く
+    private var settingsButton: some View {
+        Button {
+            isShowingSettings = true
+        } label: {
+            Image(systemName: "gearshape")
+                .font(.system(size: 20, weight: .medium))
+                .foregroundStyle(Theme.textSecondary)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel("設定")
+        .padding(.trailing, 4)
+    }
+    #endif
     
     /// 周波数を決める部品（ノブ・表示・スライダー・数値入力・プリセット）
     private var frequencyPanel: some View {
