@@ -51,7 +51,7 @@ extension View {
 
 #Preview("停止中") {
     RoundedRectangle(cornerRadius: Theme.cornerRadius)
-        .stroke(Theme.accent, lineWidth: 2)
+        .stroke(.tint, lineWidth: 2)
         .frame(width: 160, height: 60)
         .neonGlow(isActive: false)
         .padding(40)
@@ -60,7 +60,7 @@ extension View {
 
 #Preview("再生中") {
     RoundedRectangle(cornerRadius: Theme.cornerRadius)
-        .stroke(Theme.accent, lineWidth: 2)
+        .stroke(.tint, lineWidth: 2)
         .frame(width: 160, height: 60)
         .neonGlow(isActive: true)
         .padding(40)

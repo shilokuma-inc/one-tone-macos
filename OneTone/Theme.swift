@@ -26,11 +26,12 @@ enum Theme {
     /// 無効時の文字（背景比 4.0:1）
     static let textDisabled = Color(hex: 0x6E6E80)
 
-    /// 操作部品の差し色（既定テーマのネオンシアン）
+    /// 既定テーマ（ネオンシアン）の差し色。部品からは使わず、Environment の `themeColor` から取る
     static let accent = ThemeColor.default.accent
     /// 2 つ目の差し色（ネオンマゼンタ）。再生中の強調などに使う
     static let accentSecondary = Color(hex: 0xFF2BD6)
-    /// 差し色の上に載せる文字。白ではシアン上で読めないため背景と同じ暗色にする（シアン上で 12.8:1）
+    /// 既定テーマの差し色の上に載せる文字。白ではシアン上で読めないため背景と同じ暗色にする（シアン上で 12.8:1）。
+    /// 部品からは使わず、Environment の `themeColor` から取る
     static let onAccent = ThemeColor.default.onAccent
 
     /// タイトルと装飾だけに使う虹色。読む文字や数値には使わない
