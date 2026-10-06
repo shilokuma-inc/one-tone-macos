@@ -8,8 +8,9 @@ import XCTest
 
 final class ThemeColorTests: XCTestCase {
 
-    func testOffersSixToEightPresets() {
-        XCTAssertTrue((6...8).contains(ThemeColor.allCases.count))
+    func testOffersEightPresets() {
+        // Discussion #80 の範囲（6〜8 色）で 8 色を用意している。テーマを誤って消したときに気づけるよう件数を固定する
+        XCTAssertEqual(ThemeColor.allCases.count, 8)
     }
 
     func testDefaultIsCurrentNeonCyan() {
