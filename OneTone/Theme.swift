@@ -59,14 +59,23 @@ extension Color {
     }
 }
 
-extension View {
-    /// 黒基調の背景・文字色・差し色をかけ、システムの外観設定に関わらずダークで表示する。
-    /// 画面のルートと各部品のプレビューで使う
-    func themedScreen() -> some View {
-        self
+/// 黒基調の背景・文字色と、選ばれているテーマの差し色をかける
+private struct ThemedScreen: ViewModifier {
+    @Environment(\.themeColor) private var themeColor
+
+    func body(content: Content) -> some View {
+        content
             .foregroundStyle(Theme.textPrimary)
-            .tint(Theme.accent)
+            .tint(themeColor.accent)
             .background(Theme.background.ignoresSafeArea())
             .preferredColorScheme(.dark)
+    }
+}
+
+extension View {
+    /// 黒基調の背景・文字色・差し色をかけ、システムの外観設定に関わらずダークで表示する。
+    /// 画面のルートと各部品のプレビューで使う。差し色は Environment の `themeColor` に従う
+    func themedScreen() -> some View {
+        modifier(ThemedScreen())
     }
 }
