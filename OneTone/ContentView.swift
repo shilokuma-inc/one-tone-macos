@@ -8,11 +8,21 @@
 import SwiftUI
 
 struct ContentView: View {
+    /// 縦スクロールで送り先にできる部品
+    enum Section: Hashable {
+        case frequency
+    }
+
     @StateObject private var audioManager: AudioManager
     @State private var frequency: Double
     @State private var frequencyText: String
     @State private var volume: Double
     @State private var waveform: Waveform
+    /// チュートリアルを閉じたことがあるか。Skip / 完了 / 閉じる のどれでも立てる
+    @AppStorage(Tutorial.hasSeenKey) private var hasSeenTutorial = false
+    @State private var isShowingTutorial = false
+    /// 撮影モードで、開いた直後に見える位置まで送る部品
+    private let initialScrollTarget: Section?
 
     /// - Parameter screenshotScene: スクリーンショットの撮影モードで撮る画面。渡すと、その周波数・波形・音量を初期値にし、
     ///   音を出さずに再生中の表示にする。画面を出さずに描く経路でも使えるよう、`.task` ではなく初期値で状態を作る
@@ -23,43 +33,80 @@ struct ContentView: View {
         _frequencyText = State(initialValue: FrequencyInput.format(initialFrequency))
         _volume = State(initialValue: screenshotScene?.volume ?? 0.5)
         _waveform = State(initialValue: screenshotScene?.waveform ?? .sine)
+        initialScrollTarget = screenshotScene?.scrollTarget
     }
     
     var body: some View {
         // 幅で並べ方だけを変え、狭い画面では縦にスクロールして部品が切れないようにする
         GeometryReader { proxy in
-            ScrollView {
-                VStack(spacing: 16) {
-                    TitleView(isPlaying: audioManager.isPlaying)
-                        .padding(.top)
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        TitleView(isPlaying: audioManager.isPlaying)
+                            .padding(.top)
                     
-                    OscilloscopeView(isPlaying: audioManager.isPlaying, readSamples: audioManager.latestOutputSamples)
-                        .frame(maxWidth: DeckLayout.panelMaxWidth * 2)
+                        OscilloscopeView(isPlaying: audioManager.isPlaying, readSamples: audioManager.latestOutputSamples)
+                            .frame(maxWidth: DeckLayout.panelMaxWidth * 2)
                     
-                    if DeckLayout.isSideBySide(width: proxy.size.width) {
-                        HStack(alignment: .top, spacing: 16) {
-                            frequencyPanel
-                            outputPanel
-                        }
-                    } else {
-                        VStack(spacing: 16) {
-                            outputPanel
-                            frequencyPanel
+                        if DeckLayout.isSideBySide(width: proxy.size.width) {
+                            HStack(alignment: .top, spacing: 16) {
+                                frequencyPanel
+                                outputPanel
+                            }
+                        } else {
+                            VStack(spacing: 16) {
+                                outputPanel
+                                frequencyPanel
+                                    .id(Section.frequency)
+                            }
                         }
                     }
+                    .padding()
+                    .frame(maxWidth: .infinity)
                 }
-                .padding()
-                .frame(maxWidth: .infinity)
+                #if os(iOS)
+                // 数値入力のキーボードをスクロールで閉じられるようにする（確定は従来どおり onSubmit）
+                .scrollDismissesKeyboard(.interactively)
+                #endif
+                .onAppear {
+                    // チュートリアル用の撮影で、画面の下の方にある部品を写す
+                    if let initialScrollTarget {
+                        scrollProxy.scrollTo(initialScrollTarget, anchor: .top)
+                    }
+                }
             }
-            #if os(iOS)
-            // 数値入力のキーボードをスクロールで閉じられるようにする（確定は従来どおり onSubmit）
-            .scrollDismissesKeyboard(.interactively)
-            #endif
+        }
+        .overlay(alignment: .topLeading) {
+            TutorialButton(action: openTutorial)
         }
         #if os(macOS)
         .frame(minWidth: DeckLayout.minimumWindowSize.width, minHeight: DeckLayout.minimumWindowSize.height)
         #endif
         .themedScreen()
+        // シートを下へスワイプして閉じたときも、閉じる操作として既読にする
+        .sheet(isPresented: $isShowingTutorial, onDismiss: { finishTutorial(.closed) }) {
+            TutorialView(onDismiss: finishTutorial)
+        }
+        .onAppear {
+            // 初回起動時だけ自動で出す（撮影モードと -skip-tutorial 付きの起動では出さない）
+            if Tutorial.shouldPresentAutomatically(hasSeen: hasSeenTutorial) {
+                openTutorial()
+            }
+        }
+    }
+
+    /// チュートリアルを開く。説明を聞いている間に鳴り続けないよう、メイン画面の音は止める
+    private func openTutorial() {
+        audioManager.stopTone()
+        isShowingTutorial = true
+    }
+
+    /// チュートリアルを閉じる。閉じ方によらず既読にする（表示しただけでは既読にしない）
+    private func finishTutorial(_ dismissal: TutorialDismissal) {
+        if dismissal.marksAsSeen {
+            hasSeenTutorial = true
+        }
+        isShowingTutorial = false
     }
     
     /// 周波数を決める部品（ノブ・表示・スライダー・数値入力・プリセット）

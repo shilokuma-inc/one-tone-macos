@@ -14,6 +14,9 @@ set -euo pipefail
 # App Store が受け付ける 2880x1800 のキャンバスに合成する。
 #
 # 出力先: $SCREENSHOTS_DIR/APP_DESKTOP/<言語>/01_sine.png …（既定は build/screenshots）
+#
+# 環境変数 SCENES に「ファイル名<TAB>scene」の行を渡すと、AppStore/screenshots.json の代わりにその画面を撮る
+# （チュートリアル用。Tools/capture_tutorial_screenshots.sh が使う）。そのときは App Store の寸法・枚数の検証をしない
 
 LANGUAGES="${1:-}"
 DISPLAY_TYPE="APP_DESKTOP"
@@ -128,7 +131,7 @@ render_scene() {
 
 # プロセス置換の中で失敗しても set -e では止まらないので、先に取り出しておく
 LANGUAGE_LIST="$($CONFIG languages "$LANGUAGES")"
-SCENE_LIST="$($CONFIG scenes)"
+SCENE_LIST="${SCENES:-$($CONFIG scenes)}"
 
 while IFS=$'\t' read -r -u 3 language apple_language apple_locale store_locale; do
     destination="$SCREENSHOTS_DIR/$DISPLAY_TYPE/$language"
@@ -150,10 +153,12 @@ done 3< <(printf '%s\n' "$LANGUAGE_LIST")
 # 合成の時点でアルファは無いはずだが、iOS と同じ手順で描き直して確実に RGB にする
 find "$SCREENSHOTS_DIR/$DISPLAY_TYPE" -name '*.png' -print0 | xargs -0 "$TOOLS_BIN/remove_alpha"
 
-# App Store Connect は寸法が 1px でも違えば弾く
-python3 Tools/verify_screenshots.py \
-    --directory "$SCREENSHOTS_DIR/$DISPLAY_TYPE" \
-    --sizes "$($CONFIG sizes "$DISPLAY_TYPE" | paste -sd, -)"
+# App Store Connect は寸法が 1px でも違えば弾く（App Store 用に撮るときだけ）
+if [ -z "${SCENES:-}" ]; then
+    python3 Tools/verify_screenshots.py \
+        --directory "$SCREENSHOTS_DIR/$DISPLAY_TYPE" \
+        --sizes "$($CONFIG sizes "$DISPLAY_TYPE" | paste -sd, -)"
+fi
 
 FINISHED=1
 echo "$SCREENSHOTS_DIR/$DISPLAY_TYPE に保存しました"

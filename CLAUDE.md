@@ -46,6 +46,8 @@ xcodebuild test -project OneTone.xcodeproj -scheme OneTone -destination 'platfor
 - 手元で撮るなら、iOS は `Tools/capture_screenshots.sh APP_IPHONE_67`、macOS は `Tools/capture_mac_screenshots.sh`（出力は `build/screenshots/`）。
   macOS はウィンドウを撮るのではなく、アプリが `-screenshot-output` で画面外の `NSHostingView` を 2 倍のビットマップに描いて PNG にし
   （CI のランナーにはディスプレイが無くウィンドウが作られないため）、2880x1800 のキャンバスに合成する。撮影用ビルドだけ App Sandbox を外す
+- チュートリアルの画像（`OneTone/Assets.xcassets/Tutorial`）も同じ撮影モードで撮る。UI を変えたら `Tools/capture_tutorial_screenshots.sh`（`mac` / `ios` で片方だけ）で撮り直す。
+  撮る画面は `ScreenshotDemo.Scene` の `tutorial-*` で、`AppStore/screenshots.json` は使わない
 - 説明文の JSON は App Store Connect の現在値を正とする。初回や手で編集されたあとは `Metadata/App Store` を `mode: export` で実行し、
   Job Summary / artifact の JSON を `AppStore/metadata/` に取り込んでから `dry-run` で差分ゼロを確かめる。手元の検査は `python3 Tools/upload_metadata.py --check`
 - 認証は Organization secrets の App Store Connect API Key（`APPLE_API_KEY_*`）。手元に .p8 は無いので、App Store Connect の状態確認は CI の dry-run で行う
