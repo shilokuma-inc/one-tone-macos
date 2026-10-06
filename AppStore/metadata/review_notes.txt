@@ -1,5 +1,5 @@
 1. Screen recording
-A screen recording captured on a physical device is attached to our reply in App Store Connect. The app has no account registration, login, user-generated content or paid content.
+The app has no account registration, login, user-generated content or paid content, so the typical user flow consists only of the steps in section 3. A screen recording captured on a physical device is provided through our App Review reply in App Store Connect when requested.
 
 2. Purpose and target audience
 OneTone is a simple tone generator. It plays a steady tone at any frequency from 20 Hz to 20,000 Hz, with a choice of four waveforms (Sine, Square, Triangle, Sawtooth).
