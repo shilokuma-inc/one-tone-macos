@@ -16,6 +16,12 @@ struct SettingsView: View {
                 DeckPanel(title: "THEME COLOR") {
                     ThemeColorPicker(selection: $themeColor)
                 }
+                #if os(iOS)
+                // アイコンはテーマとは別に選ぶ（テーマを変えても連動しない）。macOS のアイコンは変えない
+                DeckPanel(title: "APP ICON") {
+                    AppIconPicker()
+                }
+                #endif
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -42,25 +48,7 @@ struct ThemeColorPicker: View {
                 Button {
                     selection = theme
                 } label: {
-                    VStack(spacing: 6) {
-                        Circle()
-                            .fill(theme.accent)
-                            .frame(width: 28, height: 28)
-                            .overlay {
-                                if isSelected {
-                                    Image(systemName: "checkmark")
-                                        .font(.system(size: 13, weight: .bold))
-                                        .foregroundStyle(theme.onAccent)
-                                }
-                            }
-                        Text(theme.displayName)
-                            .font(.system(.caption, design: .rounded).weight(isSelected ? .bold : .medium))
-                            .foregroundStyle(Theme.textPrimary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                    }
-                    .padding(.vertical, 10)
-                    .frame(maxWidth: .infinity)
+                    SwatchLabel(color: theme.accent, checkColor: theme.onAccent, name: theme.displayName, isSelected: isSelected)
                 }
                 .buttonStyle(WaveformButtonStyle(isSelected: isSelected))
                 .accessibilityLabel(theme.displayName)
@@ -70,6 +58,102 @@ struct ThemeColorPicker: View {
         .padding(4)
     }
 }
+
+/// 色見本の丸と名前。選択中は丸の上にチェックを載せ、名前を太字にする
+private struct SwatchLabel: View {
+    let color: Color
+    let checkColor: Color
+    let name: String
+    let isSelected: Bool
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Circle()
+                .fill(color)
+                .frame(width: 28, height: 28)
+                .overlay(Circle().strokeBorder(Theme.textDisabled, lineWidth: 1))
+                .overlay {
+                    if isSelected {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(checkColor)
+                    }
+                }
+            Text(name)
+                .font(.system(.caption, design: .rounded).weight(isSelected ? .bold : .medium))
+                .foregroundStyle(Theme.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+    }
+}
+
+#if os(iOS)
+/// アプリのアイコンの選択（iOS だけ）。既定のアイコン（白黒）と、テーマ色ごとの代替アイコンから選ぶ。
+/// 切り替えると OS が確認のダイアログを出す。失敗したら理由を表示する
+struct AppIconPicker: View {
+    /// 今のアイコン。nil は既定のアイコン
+    @State private var current: ThemeColor? = ThemeColor(alternateIconName: UIApplication.shared.alternateIconName)
+    @State private var errorMessage: String?
+
+    private let columns = [GridItem(.adaptive(minimum: 84), spacing: 8)]
+    private let isSupported = UIApplication.shared.supportsAlternateIcons
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            LazyVGrid(columns: columns, spacing: 8) {
+                option(nil, color: Theme.textPrimary, checkColor: Theme.background, name: "標準")
+                ForEach(ThemeColor.allCases) { theme in
+                    option(theme, color: theme.accent, checkColor: theme.onAccent, name: theme.displayName)
+                }
+            }
+            .disabled(!isSupported)
+            if !isSupported {
+                Text("この端末ではアイコンを変更できません")
+                    .font(.caption)
+                    .foregroundStyle(Theme.textSecondary)
+            }
+        }
+        .padding(4)
+        .alert("アイコンを変更できませんでした", isPresented: Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "")
+        }
+    }
+
+    private func option(_ icon: ThemeColor?, color: Color, checkColor: Color, name: String) -> some View {
+        let isSelected = icon == current
+        return Button {
+            select(icon)
+        } label: {
+            SwatchLabel(color: color, checkColor: checkColor, name: name, isSelected: isSelected)
+        }
+        .buttonStyle(WaveformButtonStyle(isSelected: isSelected))
+        .accessibilityLabel("アイコン: \(name)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func select(_ icon: ThemeColor?) {
+        guard icon != current else { return }
+        Task { @MainActor in
+            do {
+                try await UIApplication.shared.setAlternateIconName(icon?.alternateIconName)
+                current = icon
+            } catch {
+                errorMessage = error.localizedDescription
+                // 実際のアイコンに表示を合わせる
+                current = ThemeColor(alternateIconName: UIApplication.shared.alternateIconName)
+            }
+        }
+    }
+}
+#endif
 
 #Preview {
     SettingsView()
