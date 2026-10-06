@@ -77,6 +77,27 @@ enum ThemeColor: String, CaseIterable, Identifiable {
     var accent: Color { Color(hex: accentHex) }
     var onAccent: Color { Color(hex: onAccentHex) }
     var titleGradient: [Color] { titleGradientHex.map { Color(hex: $0) } }
+
+    /// 選んだテーマを保存する UserDefaults のキー（`@AppStorage`）。端末ごとに保存し、iCloud では同期しない（Discussion #80 Q5）。
+    /// 保存値になるので、リリース後に変えると既存ユーザーの選択が失われる
+    static let storageKey = "themeColor"
+
+    /// 画面に使うテーマ。スクリーンショットの撮影モードでは、保存値に関わらず既定のテーマで撮る
+    static func displayed(stored: ThemeColor, isScreenshotDemo: Bool) -> ThemeColor {
+        isScreenshotDemo ? .default : stored
+    }
+}
+
+private struct ThemeColorKey: EnvironmentKey {
+    static let defaultValue = ThemeColor.default
+}
+
+extension EnvironmentValues {
+    /// 選ばれているテーマ。`ContentView` のルートで注入し、各部品はここから差し色を取る。注入していないプレビューでは既定のテーマ
+    var themeColor: ThemeColor {
+        get { self[ThemeColorKey.self] }
+        set { self[ThemeColorKey.self] = newValue }
+    }
 }
 
 /// WCAG 2.x の相対輝度によるコントラスト比の計算。テーマの色がコントラストの目安を満たすかの確認に使う

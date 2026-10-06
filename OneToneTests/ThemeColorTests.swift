@@ -63,6 +63,34 @@ final class ThemeColorTests: XCTestCase {
         }
     }
 
+    func testScreenshotDemoAlwaysUsesDefaultTheme() {
+        for theme in ThemeColor.allCases {
+            XCTAssertEqual(ThemeColor.displayed(stored: theme, isScreenshotDemo: true), .default)
+            XCTAssertEqual(ThemeColor.displayed(stored: theme, isScreenshotDemo: false), theme)
+        }
+    }
+
+    func testStoredValueRoundTripsThroughUserDefaults() throws {
+        let suiteName = "ThemeColorTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        // 保存値が無いときは既定のテーマ（既存ユーザーの見た目を変えない）
+        XCTAssertNil(defaults.string(forKey: ThemeColor.storageKey))
+        for theme in ThemeColor.allCases {
+            defaults.set(theme.rawValue, forKey: ThemeColor.storageKey)
+            let stored = defaults.string(forKey: ThemeColor.storageKey).flatMap(ThemeColor.init(rawValue:))
+            XCTAssertEqual(stored, theme)
+        }
+        // 読めない保存値は既定のテーマに戻す（@AppStorage の初期値と同じ扱い）
+        XCTAssertNil(ThemeColor(rawValue: "unknown"))
+    }
+
+    func testStorageKeyIsStable() {
+        // 保存値のキー。リリース後に変えると既存ユーザーの選択が失われる
+        XCTAssertEqual(ThemeColor.storageKey, "themeColor")
+    }
+
     func testContrastRatioMatchesKnownValues() {
         XCTAssertEqual(ColorContrast.ratio(0xFFFFFF, 0x000000), 21, accuracy: 1e-9)
         XCTAssertEqual(ColorContrast.ratio(0x000000, 0xFFFFFF), 21, accuracy: 1e-9)

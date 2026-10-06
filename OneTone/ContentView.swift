@@ -13,6 +13,9 @@ struct ContentView: View {
     @State private var frequencyText: String
     @State private var volume: Double
     @State private var waveform: Waveform
+    /// 選んだテーマ。保存値が無い・読めないときは既定のテーマ
+    @AppStorage(ThemeColor.storageKey) private var storedThemeColor: ThemeColor = .default
+    private let isScreenshotDemo: Bool
 
     /// - Parameter screenshotScene: スクリーンショットの撮影モードで撮る画面。渡すと、その周波数・波形・音量を初期値にし、
     ///   音を出さずに再生中の表示にする。画面を出さずに描く経路でも使えるよう、`.task` ではなく初期値で状態を作る
@@ -23,6 +26,7 @@ struct ContentView: View {
         _frequencyText = State(initialValue: FrequencyInput.format(initialFrequency))
         _volume = State(initialValue: screenshotScene?.volume ?? 0.5)
         _waveform = State(initialValue: screenshotScene?.waveform ?? .sine)
+        isScreenshotDemo = screenshotScene != nil
     }
     
     var body: some View {
@@ -60,6 +64,7 @@ struct ContentView: View {
         .frame(minWidth: DeckLayout.minimumWindowSize.width, minHeight: DeckLayout.minimumWindowSize.height)
         #endif
         .themedScreen()
+        .environment(\.themeColor, ThemeColor.displayed(stored: storedThemeColor, isScreenshotDemo: isScreenshotDemo))
     }
     
     /// 周波数を決める部品（ノブ・表示・スライダー・数値入力・プリセット）
