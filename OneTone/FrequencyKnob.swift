@@ -13,6 +13,7 @@ import AppKit
 struct FrequencyKnob: View {
     let frequency: Double
     let onChange: (Double) -> Void
+    @Environment(\.themeColor) private var themeColor
 
     /// ドラッグ中、前回の変化時点までの移動量。修飾キーを途中で押しても値が飛ばないよう、差分ずつ反映する。
     /// `@GestureState` にしているのは、ドラッグがキャンセルされて `onEnded` が呼ばれなくても初期値に戻すため
@@ -31,7 +32,7 @@ struct FrequencyKnob: View {
             // 現在の値までの弧
             Circle()
                 .trim(from: 0, to: KnobMapping.sweepFraction * position)
-                .stroke(Theme.accent, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                .stroke(themeColor.accent, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                 .rotationEffect(.degrees(KnobMapping.startAngle - 90))
             // つまみ本体
             Circle()

@@ -52,11 +52,12 @@ struct PlayTriangle: Shape {
 /// 丸い大きなトグル。オンの間は差し色の太い枠で光り、オフの間は細い控えめな枠で静かにしている
 struct ToggleButtonStyle: ButtonStyle {
     let isOn: Bool
+    @Environment(\.themeColor) private var themeColor
     private let size: CGFloat = 120
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .foregroundStyle(isOn ? Theme.accent : Theme.textPrimary)
+            .foregroundStyle(isOn ? themeColor.accent : Theme.textPrimary)
             .frame(width: size, height: size)
             .background(
                 Circle().fill(
@@ -70,11 +71,11 @@ struct ToggleButtonStyle: ButtonStyle {
             )
             .overlay(
                 Circle().strokeBorder(
-                    isOn ? Theme.accent : Theme.textDisabled.opacity(0.6),
+                    isOn ? themeColor.accent : Theme.textDisabled.opacity(0.6),
                     lineWidth: isOn ? 4 : 1.5
                 )
             )
-            .neonGlow(Theme.accent, isActive: isOn)
+            .neonGlow(isActive: isOn)
             .scaleEffect(configuration.isPressed ? 0.95 : 1)
             .brightness(configuration.isPressed ? 0.08 : 0)
             .contentShape(Circle())
