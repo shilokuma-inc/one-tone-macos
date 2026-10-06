@@ -35,20 +35,33 @@ final class NeonGlowTests: XCTestCase {
         XCTAssertGreaterThan(Theme.glowPulsePeriod, 1)
     }
 
-    func testTitleHueCompletesOneCyclePerPeriod() {
-        let period = Theme.titleHueCyclePeriod
-        XCTAssertGreaterThan(period, 1, "タイトルの色相の回転は以前の 1 秒周期より遅くする")
+    func testTitleHueSwingsAroundThemeColorOncePerPeriod() {
+        let period = Theme.titleHueSwingPeriod
+        let amplitude = Theme.titleHueSwingAmplitude
+        XCTAssertGreaterThan(period, 1, "タイトルの色相の揺れは以前の 1 秒周期より遅くする")
+        XCTAssertEqual(amplitude, 30, "選んだ色の周りで ±30° 揺らす（判断ログ #91）")
+        // 選んだ色（0°）から始まり、1/4 周期で +振幅、半周期で 0°、3/4 周期で -振幅、1 周期で 0° に戻る
         XCTAssertEqual(TitleView.hueDegrees(at: 0), 0, accuracy: 1e-9)
-        XCTAssertEqual(TitleView.hueDegrees(at: period / 4), 90, accuracy: 1e-6)
-        XCTAssertEqual(TitleView.hueDegrees(at: period * 3 + period / 2), 180, accuracy: 1e-6)
+        XCTAssertEqual(TitleView.hueDegrees(at: period / 4), amplitude, accuracy: 1e-6)
+        XCTAssertEqual(TitleView.hueDegrees(at: period / 2), 0, accuracy: 1e-6)
+        XCTAssertEqual(TitleView.hueDegrees(at: period * 3 / 4), -amplitude, accuracy: 1e-6)
+        XCTAssertEqual(TitleView.hueDegrees(at: period * 3 + period / 4), amplitude, accuracy: 1e-6)
     }
 
-    func testTitleHueStaysInRange() {
+    func testTitleHueStaysWithinSwingAmplitude() {
+        let amplitude = Theme.titleHueSwingAmplitude
         for time in stride(from: 0.0, to: 100.0, by: 0.37) {
             let hue = TitleView.hueDegrees(at: time)
-            XCTAssertGreaterThanOrEqual(hue, 0)
-            XCTAssertLessThan(hue, 360)
+            XCTAssertGreaterThanOrEqual(hue, -amplitude - 1e-9)
+            XCTAssertLessThanOrEqual(hue, amplitude + 1e-9)
         }
+    }
+
+    func testTitleHueSwingIsSmooth() {
+        // 30fps の 1 フレームあたりの変化が小さく、折り返しで角度が飛ばない（往復で滑らかに動く）
+        let samples = stride(from: 0.0, to: Theme.titleHueSwingPeriod * 2, by: 1.0 / 30).map(TitleView.hueDegrees(at:))
+        let maxStep = zip(samples, samples.dropFirst()).map { abs($1 - $0) }.max() ?? .infinity
+        XCTAssertLessThan(maxStep, 1)
     }
 
     func testPausableClockDoesNotAdvanceWhileStopped() {
