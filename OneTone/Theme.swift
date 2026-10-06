@@ -41,8 +41,10 @@ enum Theme {
     static let glowPulsePeriod: TimeInterval = 2.4
     /// 発光の明るさのゆらぎの幅（0...1）。明るさは 1 - この値 〜 1 の間を行き来し、消えることはない
     static let glowPulseDepth: Double = 0.25
-    /// 再生中にタイトルの色相が 1 周する秒数。以前の 1 秒周期は速すぎるため、ゆっくり回す
-    static let titleHueCyclePeriod: TimeInterval = 8
+    /// 再生中にタイトルの色相が選んだ色を中心に 1 往復する秒数。点滅に見えないよう、ゆっくり揺らす
+    static let titleHueSwingPeriod: TimeInterval = 8
+    /// 再生中にタイトルの色相を揺らす幅（度）。選んだ色の色相から -この値 〜 +この値 の間を行き来する（判断ログ #91）
+    static let titleHueSwingAmplitude: Double = 30
 }
 
 extension Color {
