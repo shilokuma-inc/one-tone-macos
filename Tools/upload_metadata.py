@@ -273,6 +273,10 @@ def export(directory: Path, targets: list[Language], current: dict[str, dict[str
     if review_notes.get(first):
         (directory / REVIEW_NOTES_FILE).write_text(review_notes[first] + "\n", encoding="utf-8")
         print(f"  {REVIEW_NOTES_FILE}: {len(review_notes[first])} 字")
+    elif (directory / REVIEW_NOTES_FILE).is_file():
+        # 消すと次の upload で App Store Connect 側の値を残す扱いになり、意図が変わるので手元のファイルは触らない
+        print(f"  {REVIEW_NOTES_FILE}: App Store Connect 側が空のため書き出しません。"
+              "手元のファイルは残っているので、次の upload でその内容が反映されます")
     print(f"書き出しました: {directory}（{first} の現在値）")
     return 0
 
