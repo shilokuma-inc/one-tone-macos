@@ -1,4 +1,4 @@
-# LEARNINGS — one-tone-macos 固有の知見
+# LEARNINGS — one-tone-apple 固有の知見
 
 このリポジトリだけに当てはまる、ツールや環境の癖と回避策を溜める。全リポジトリ共通の知見は `~/.agents/LEARNINGS.md` に書く。
 

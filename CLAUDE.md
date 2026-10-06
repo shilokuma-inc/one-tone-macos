@@ -1,4 +1,4 @@
-# one-tone-macos
+# one-tone-apple
 
 macOS / iOS アプリ（SwiftUI。1 ターゲットで Supported Destinations に macOS と iOS）。
 
@@ -6,7 +6,7 @@ macOS / iOS アプリ（SwiftUI。1 ターゲットで Supported Destinations �
 
 | 項目 | 値 |
 | --- | --- |
-| リポジトリ | `shilokuma-inc/one-tone-macos` |
+| リポジトリ | `shilokuma-inc/one-tone-apple` |
 | デフォルトブランチ | `develop` |
 | UI フレームワーク | SwiftUI |
 | Deployment Target | macOS 14.3 / iOS 18.0 |
@@ -51,7 +51,7 @@ xcodebuild test -project OneTone.xcodeproj -scheme OneTone -destination 'platfor
 - 説明文の JSON は App Store Connect の現在値を正とする。初回や手で編集されたあとは `Metadata/App Store` を `mode: export` で実行し、
   Job Summary / artifact の JSON を `AppStore/metadata/` に取り込んでから `dry-run` で差分ゼロを確かめる。手元の検査は `python3 Tools/upload_metadata.py --check`
 - 認証は Organization secrets の App Store Connect API Key（`APPLE_API_KEY_*`）。手元に .p8 は無いので、App Store Connect の状態確認は CI の dry-run で行う
-- PR 本文のスクリーンショットは `assets/issue-<N>` ブランチに置き、`https://github.com/shilokuma-inc/one-tone-macos/raw/assets/issue-<N>/<N>/<file>.png` で参照する
+- PR 本文のスクリーンショットは `assets/issue-<N>` ブランチに置き、`https://github.com/shilokuma-inc/one-tone-apple/raw/assets/issue-<N>/<N>/<file>.png` で参照する
   （`Cleanup assets branch` ワークフローがマージ時に消す）
 
 ## ralph-loop による自律開発
