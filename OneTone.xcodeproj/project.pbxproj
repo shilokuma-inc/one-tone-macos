@@ -24,6 +24,8 @@
 		DA5CD492011D1C2A9423EAA8 /* SampleRingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F4CF62B2D93FFBC0B96FF58 /* SampleRingBuffer.swift */; };
 		D1BD1C8BB4E363C1197FE6A7 /* SampleRingBufferTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFC38CB04B067663CAF98D8 /* SampleRingBufferTests.swift */; };
 		407D703CBB65FE821F124499 /* AudioOutputTapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0973AB3BCFCB499DB02709E /* AudioOutputTapTests.swift */; };
+		7E2A91C4D3B85F0A6C1E4D02 /* ThemeColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E2A91C4D3B85F0A6C1E4D01 /* ThemeColor.swift */; };
+		7E2A91C4D3B85F0A6C1E4D04 /* ThemeColorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E2A91C4D3B85F0A6C1E4D03 /* ThemeColorTests.swift */; };
 		AFE1C6798A21DAD499BD65D4 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD16F17D9D3AE4C740823B6 /* Theme.swift */; };
 		42F1309F6F943FB2CD8164ED /* NeonGlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD510FE5B23A742588DF144E /* NeonGlow.swift */; };
 		2714CAA32BB91936606E2F40 /* NeonGlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5ECEF63C029A8173D88CF98 /* NeonGlowTests.swift */; };
@@ -79,6 +81,8 @@
 		2F4CF62B2D93FFBC0B96FF58 /* SampleRingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleRingBuffer.swift; sourceTree = "<group>"; };
 		CCFC38CB04B067663CAF98D8 /* SampleRingBufferTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleRingBufferTests.swift; sourceTree = "<group>"; };
 		D0973AB3BCFCB499DB02709E /* AudioOutputTapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioOutputTapTests.swift; sourceTree = "<group>"; };
+		7E2A91C4D3B85F0A6C1E4D01 /* ThemeColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeColor.swift; sourceTree = "<group>"; };
+		7E2A91C4D3B85F0A6C1E4D03 /* ThemeColorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeColorTests.swift; sourceTree = "<group>"; };
 		CCD16F17D9D3AE4C740823B6 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		BD510FE5B23A742588DF144E /* NeonGlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonGlow.swift; sourceTree = "<group>"; };
 		B5ECEF63C029A8173D88CF98 /* NeonGlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonGlowTests.swift; sourceTree = "<group>"; };
@@ -145,6 +149,7 @@
 				3C16C753EC9240FC9BC1DA7D /* FrequencyKnob.swift */,
 				BD510FE5B23A742588DF144E /* NeonGlow.swift */,
 				CCD16F17D9D3AE4C740823B6 /* Theme.swift */,
+				7E2A91C4D3B85F0A6C1E4D01 /* ThemeColor.swift */,
 				2F4CF62B2D93FFBC0B96FF58 /* SampleRingBuffer.swift */,
 				A470FA42F175C2AACE62DA15 /* WaveformPicker.swift */,
 				021BD47CEE205813A718328A /* VolumeControl.swift */,
@@ -178,6 +183,7 @@
 				FB4770691A15EEEF905F9BF0 /* LevelMeterTests.swift */,
 				C57429F39C3E80FA45607352 /* FrequencyKnobTests.swift */,
 				B5ECEF63C029A8173D88CF98 /* NeonGlowTests.swift */,
+				7E2A91C4D3B85F0A6C1E4D03 /* ThemeColorTests.swift */,
 				5A1C3E7D2F0B4A6E9C8D1B23 /* ScreenshotDemoTests.swift */,
 				D0973AB3BCFCB499DB02709E /* AudioOutputTapTests.swift */,
 				CCFC38CB04B067663CAF98D8 /* SampleRingBufferTests.swift */,
@@ -331,6 +337,7 @@
 				74086856C730017FF3AC29F5 /* FrequencyKnob.swift in Sources */,
 				42F1309F6F943FB2CD8164ED /* NeonGlow.swift in Sources */,
 				AFE1C6798A21DAD499BD65D4 /* Theme.swift in Sources */,
+				7E2A91C4D3B85F0A6C1E4D02 /* ThemeColor.swift in Sources */,
 				DA5CD492011D1C2A9423EAA8 /* SampleRingBuffer.swift in Sources */,
 				481F0AD1F62F3F8054A85E76 /* WaveformPicker.swift in Sources */,
 				3CED587896C10CC48032FB58 /* VolumeControl.swift in Sources */,
@@ -353,6 +360,7 @@
 				B29237D025CA867A2059046B /* LevelMeterTests.swift in Sources */,
 				A4791AB12D480A8316C2C8FF /* FrequencyKnobTests.swift in Sources */,
 				2714CAA32BB91936606E2F40 /* NeonGlowTests.swift in Sources */,
+				7E2A91C4D3B85F0A6C1E4D04 /* ThemeColorTests.swift in Sources */,
 				5A1C3E7D2F0B4A6E9C8D1B22 /* ScreenshotDemoTests.swift in Sources */,
 				407D703CBB65FE821F124499 /* AudioOutputTapTests.swift in Sources */,
 				D1BD1C8BB4E363C1197FE6A7 /* SampleRingBufferTests.swift in Sources */,

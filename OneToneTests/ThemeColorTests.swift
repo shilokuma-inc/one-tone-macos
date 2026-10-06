@@ -1,0 +1,72 @@
+//
+//  ThemeColorTests.swift
+//  OneToneTests
+//
+
+import XCTest
+@testable import OneTone
+
+final class ThemeColorTests: XCTestCase {
+
+    func testOffersSixToEightPresets() {
+        XCTAssertTrue((6...8).contains(ThemeColor.allCases.count))
+    }
+
+    func testDefaultIsCurrentNeonCyan() {
+        XCTAssertEqual(ThemeColor.default, .cyan)
+        // 既存ユーザーの見た目を変えないため、今の差し色と同じ値にする
+        XCTAssertEqual(ThemeColor.default.accentHex, 0x00E5FF)
+        XCTAssertEqual(ThemeColor.default.onAccentHex, 0x0A0A0F)
+    }
+
+    func testRawValuesAndNamesAreUnique() {
+        let rawValues = ThemeColor.allCases.map(\.rawValue)
+        XCTAssertEqual(Set(rawValues).count, rawValues.count)
+        let names = ThemeColor.allCases.map(\.displayName)
+        XCTAssertEqual(Set(names).count, names.count)
+        XCTAssertFalse(names.contains(""))
+    }
+
+    func testAccentsAreDistinctFromEachOtherAndFromSecondaryAccent() {
+        let accents = ThemeColor.allCases.map(\.accentHex)
+        XCTAssertEqual(Set(accents).count, accents.count)
+        // 2 つ目の差し色（マゼンタ 0xFF2BD6）はテーマで変えないので、同じ色のテーマは作らない
+        XCTAssertFalse(accents.contains(0xFF2BD6))
+    }
+
+    func testTextOnAccentIsReadable() {
+        for theme in ThemeColor.allCases {
+            XCTAssertGreaterThanOrEqual(
+                ColorContrast.ratio(theme.onAccentHex, theme.accentHex), 4.5, "\(theme) の差し色の上の文字"
+            )
+        }
+    }
+
+    func testAccentStandsOutFromBackground() {
+        for theme in ThemeColor.allCases {
+            XCTAssertGreaterThanOrEqual(
+                ColorContrast.ratio(theme.accentHex, Theme.backgroundHex), 4.5, "\(theme) の差し色と背景"
+            )
+        }
+    }
+
+    func testTitleGradientCentersOnAccentAndStaysVisible() {
+        for theme in ThemeColor.allCases {
+            let gradient = theme.titleGradientHex
+            XCTAssertEqual(gradient.count, 3, "\(theme)")
+            XCTAssertEqual(gradient[1], theme.accentHex, "\(theme) のグラデーションの中心は差し色")
+            for hex in gradient {
+                // タイトルは大きな文字なので 3:1 を下限にする
+                XCTAssertGreaterThanOrEqual(ColorContrast.ratio(hex, Theme.backgroundHex), 3, "\(theme)")
+            }
+        }
+    }
+
+    func testContrastRatioMatchesKnownValues() {
+        XCTAssertEqual(ColorContrast.ratio(0xFFFFFF, 0x000000), 21, accuracy: 1e-9)
+        XCTAssertEqual(ColorContrast.ratio(0x000000, 0xFFFFFF), 21, accuracy: 1e-9)
+        XCTAssertEqual(ColorContrast.ratio(0x777777, 0x777777), 1, accuracy: 1e-9)
+        // Theme.swift のコメントの値（シアン上の暗色 12.8:1）と一致する
+        XCTAssertEqual(ColorContrast.ratio(0x00E5FF, 0x0A0A0F), 12.84, accuracy: 0.01)
+    }
+}

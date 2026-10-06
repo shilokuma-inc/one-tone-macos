@@ -11,7 +11,9 @@ import SwiftUI
 /// 文字色は背景 `background` とのコントラスト比 4.5:1 以上を目安に選んでいる（値は Issue #43 に一覧）。
 enum Theme {
     /// 画面の背景（ほぼ黒）
-    static let background = Color(hex: 0x0A0A0F)
+    static let background = Color(hex: backgroundHex)
+    /// `background` の 0xRRGGBB。コントラスト比の計算に使う
+    static let backgroundHex: UInt32 = 0x0A0A0F
     /// 部品を載せる面（パネル）
     static let surface = Color(hex: 0x16161F)
     /// 一段持ち上げた面（押せる部品）
@@ -24,12 +26,12 @@ enum Theme {
     /// 無効時の文字（背景比 4.0:1）
     static let textDisabled = Color(hex: 0x6E6E80)
 
-    /// 操作部品の差し色（ネオンシアン）
-    static let accent = Color(hex: 0x00E5FF)
+    /// 操作部品の差し色（既定テーマのネオンシアン）
+    static let accent = ThemeColor.default.accent
     /// 2 つ目の差し色（ネオンマゼンタ）。再生中の強調などに使う
     static let accentSecondary = Color(hex: 0xFF2BD6)
     /// 差し色の上に載せる文字。白ではシアン上で読めないため背景と同じ暗色にする（シアン上で 12.8:1）
-    static let onAccent = Color(hex: 0x0A0A0F)
+    static let onAccent = ThemeColor.default.onAccent
 
     /// タイトルと装飾だけに使う虹色。読む文字や数値には使わない
     static let rainbow: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .red]
