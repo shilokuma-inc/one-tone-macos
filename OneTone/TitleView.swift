@@ -5,10 +5,11 @@
 
 import SwiftUI
 
-/// 虹色のタイトル。グラデーションは常に表示し、色相の回転と発光は再生中だけにする（停止中は静か）。
+/// 選んだテーマの差し色を中心にしたグラデーションのタイトル。グラデーションは常に表示し、色相の回転と発光は再生中だけにする（停止中は静か）。
 /// Reduce Motion がオンのとき、またはスクリーンショットの撮影モードのときは回転させない
 struct TitleView: View {
     let isPlaying: Bool
+    @Environment(\.themeColor) private var themeColor
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.freezesAnimations) private var freezesAnimations
     /// 回っていた時間だけを数える時計。止めている間の時間を角度に含めず、再開したとき色が飛ばないようにする
@@ -44,7 +45,7 @@ struct TitleView: View {
             .minimumScaleFactor(0.5)
             .overlay(
                 LinearGradient(
-                    gradient: Gradient(colors: Theme.rainbow),
+                    gradient: Gradient(colors: themeColor.titleGradient),
                     startPoint: .leading,
                     endPoint: .trailing
                 )
@@ -102,4 +103,11 @@ struct PausableClock {
     TitleView(isPlaying: true)
         .padding()
         .themedScreen()
+}
+
+#Preview("ピンクのテーマで再生中") {
+    TitleView(isPlaying: true)
+        .padding()
+        .themedScreen()
+        .environment(\.themeColor, .pink)
 }

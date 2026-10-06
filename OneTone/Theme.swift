@@ -33,9 +33,6 @@ enum Theme {
     /// 差し色の上に載せる文字。白ではシアン上で読めないため背景と同じ暗色にする（シアン上で 12.8:1）
     static let onAccent = ThemeColor.default.onAccent
 
-    /// タイトルと装飾だけに使う虹色。読む文字や数値には使わない
-    static let rainbow: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .red]
-
     static let cornerRadius: CGFloat = 12
     /// 再生中の発光の半径。停止中は発光させない
     static let glowRadius: CGFloat = 8
