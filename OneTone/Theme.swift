@@ -34,9 +34,6 @@ enum Theme {
     /// 部品からは使わず、Environment の `themeColor` から取る
     static let onAccent = ThemeColor.default.onAccent
 
-    /// タイトルと装飾だけに使う虹色。読む文字や数値には使わない
-    static let rainbow: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .red]
-
     static let cornerRadius: CGFloat = 12
     /// 再生中の発光の半径。停止中は発光させない
     static let glowRadius: CGFloat = 8
