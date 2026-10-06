@@ -97,6 +97,8 @@ struct AppIconPicker: View {
     /// 今のアイコン。nil は既定のアイコン
     @State private var current: ThemeColor? = ThemeColor(alternateIconName: UIApplication.shared.alternateIconName)
     @State private var errorMessage: String?
+    /// 切り替えの途中か。UIKit は重なった切り替えの順序を保証しないので、終わるまで次の選択を受け付けない
+    @State private var isChanging = false
 
     private let columns = [GridItem(.adaptive(minimum: 84), spacing: 8)]
     private let isSupported = UIApplication.shared.supportsAlternateIcons
@@ -109,7 +111,7 @@ struct AppIconPicker: View {
                     option(theme, color: theme.accent, checkColor: theme.onAccent, name: theme.displayName)
                 }
             }
-            .disabled(!isSupported)
+            .disabled(!isSupported || isChanging)
             if !isSupported {
                 Text("この端末ではアイコンを変更できません")
                     .font(.caption)
@@ -140,16 +142,17 @@ struct AppIconPicker: View {
     }
 
     private func select(_ icon: ThemeColor?) {
-        guard icon != current else { return }
+        guard icon != current, !isChanging else { return }
+        isChanging = true
         Task { @MainActor in
             do {
                 try await UIApplication.shared.setAlternateIconName(icon?.alternateIconName)
-                current = icon
             } catch {
                 errorMessage = error.localizedDescription
-                // 実際のアイコンに表示を合わせる
-                current = ThemeColor(alternateIconName: UIApplication.shared.alternateIconName)
             }
+            // 成功・失敗どちらでも、実際のアイコンに表示を合わせる
+            current = ThemeColor(alternateIconName: UIApplication.shared.alternateIconName)
+            isChanging = false
         }
     }
 }
