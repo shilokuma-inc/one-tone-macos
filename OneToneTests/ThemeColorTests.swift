@@ -99,6 +99,16 @@ final class ThemeColorTests: XCTestCase {
         XCTAssertFalse(names.contains("AppIcon"), "既定のアイコンと同じ名前にしない")
     }
 
+    func testThemeIsFoundFromAlternateIconName() {
+        for theme in ThemeColor.allCases {
+            XCTAssertEqual(ThemeColor(alternateIconName: theme.alternateIconName), theme)
+        }
+        // 既定のアイコン（nil）と知らない名前はテーマに対応しない
+        XCTAssertNil(ThemeColor(alternateIconName: nil))
+        XCTAssertNil(ThemeColor(alternateIconName: "AppIcon"))
+        XCTAssertNil(ThemeColor(alternateIconName: "cyan"))
+    }
+
     func testContrastRatioMatchesKnownValues() {
         XCTAssertEqual(ColorContrast.ratio(0xFFFFFF, 0x000000), 21, accuracy: 1e-9)
         XCTAssertEqual(ColorContrast.ratio(0x000000, 0xFFFFFF), 21, accuracy: 1e-9)

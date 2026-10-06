@@ -77,6 +77,12 @@ enum ThemeColor: String, CaseIterable, Identifiable {
     /// iOS の代替アイコンの名前（Asset Catalog の `AppIcon-<rawValue>.appiconset`）。`Tools/make_alternate_icons.swift` で作る
     var alternateIconName: String { "AppIcon-\(rawValue)" }
 
+    /// 代替アイコンの名前に対応するテーマ。既定のアイコン（nil）や知らない名前なら nil
+    init?(alternateIconName: String?) {
+        guard let match = ThemeColor.allCases.first(where: { $0.alternateIconName == alternateIconName }) else { return nil }
+        self = match
+    }
+
     var accent: Color { Color(hex: accentHex) }
     var onAccent: Color { Color(hex: onAccentHex) }
     var titleGradient: [Color] { titleGradientHex.map { Color(hex: $0) } }
