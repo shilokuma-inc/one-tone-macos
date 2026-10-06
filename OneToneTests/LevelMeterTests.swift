@@ -48,8 +48,18 @@ final class LevelMeterTests: XCTestCase {
     }
 
     func testOnlyTopSegmentsUseWarningColor() {
-        // 上端の -6dB より大きい 2 セグメントだけが警告色
-        let warning = (0..<LevelMeter.segmentCount).filter { LevelMeter.segmentColor($0) == Theme.accentSecondary }
-        XCTAssertEqual(warning, [18, 19])
+        // 上端の -6dB より大きい 2 セグメントだけが警告色（マゼンタ）。どのテーマでも同じ
+        for theme in ThemeColor.allCases {
+            let colors = (0..<LevelMeter.segmentCount).map { LevelMeter.segmentColor($0, accent: theme.accent) }
+            let warning = colors.indices.filter { colors[$0] == Theme.accentSecondary }
+            XCTAssertEqual(warning, [18, 19], "\(theme)")
+        }
+    }
+
+    func testOtherSegmentsUseThemeAccent() {
+        for theme in ThemeColor.allCases {
+            let normal = (0..<18).map { LevelMeter.segmentColor($0, accent: theme.accent) }
+            XCTAssertTrue(normal.allSatisfy { $0 == theme.accent }, "\(theme)")
+        }
     }
 }

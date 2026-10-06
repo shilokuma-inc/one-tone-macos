@@ -14,6 +14,7 @@ struct LevelMeterView: View {
     /// 直近の出力サンプルを古い順に返す（`AudioManager.latestOutputSamples`）
     let readSamples: (Int) -> [Float]
 
+    @Environment(\.themeColor) private var themeColor
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.freezesAnimations) private var freezesAnimations
 
@@ -36,11 +37,11 @@ struct LevelMeterView: View {
                 HStack(spacing: 3) {
                     ForEach(0..<LevelMeter.segmentCount, id: \.self) { index in
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(index < litCount ? LevelMeter.segmentColor(index) : Theme.surfaceRaised)
+                            .fill(index < litCount ? LevelMeter.segmentColor(index, accent: themeColor.accent) : Theme.surfaceRaised)
                             .frame(height: 12)
                     }
                 }
-                .neonGlow(Theme.accent, isActive: isPlaying && litCount > 0)
+                .neonGlow(isActive: isPlaying && litCount > 0)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Level")
@@ -76,10 +77,10 @@ enum LevelMeter {
         return Int((ratio * Double(segmentCount)).rounded(.up))
     }
 
-    /// セグメントの位置（0 始まり）に対応する色。`warningDecibels` 以上はマゼンタ、それ以外はシアン
-    static func segmentColor(_ index: Int) -> Color {
+    /// セグメントの位置（0 始まり）に対応する色。`warningDecibels` 以上はマゼンタ（テーマによらない）、それ以外はテーマの差し色 `accent`
+    static func segmentColor(_ index: Int, accent: Color) -> Color {
         let decibels = floorDecibels + (-floorDecibels) * Double(index + 1) / Double(segmentCount)
-        return decibels > warningDecibels ? Theme.accentSecondary : Theme.accent
+        return decibels > warningDecibels ? Theme.accentSecondary : accent
     }
 
     /// 表示用の dB 表記（1dB 単位）。範囲の下端より小さいときは「-inf dB」

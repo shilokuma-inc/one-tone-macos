@@ -18,6 +18,12 @@ struct ContentView: View {
     @State private var frequencyText: String
     @State private var volume: Double
     @State private var waveform: Waveform
+    /// 選んだテーマ。保存値が無い・読めないときは既定のテーマ
+    @AppStorage(ThemeColor.storageKey) private var storedThemeColor: ThemeColor = .default
+    private let isScreenshotDemo: Bool
+    #if os(iOS)
+    @State private var isShowingSettings = false
+    #endif
     /// チュートリアルを閉じたことがあるか。Skip / 完了 / 閉じる のどれでも立てる
     @AppStorage(Tutorial.hasSeenKey) private var hasSeenTutorial = false
     @State private var isShowingTutorial = false
@@ -33,6 +39,7 @@ struct ContentView: View {
         _frequencyText = State(initialValue: FrequencyInput.format(initialFrequency))
         _volume = State(initialValue: screenshotScene?.volume ?? 0.5)
         _waveform = State(initialValue: screenshotScene?.waveform ?? .sine)
+        isScreenshotDemo = screenshotScene != nil
         initialScrollTarget = screenshotScene?.scrollTarget
     }
     
@@ -79,10 +86,34 @@ struct ContentView: View {
         .overlay(alignment: .topLeading) {
             TutorialButton(action: openTutorial)
         }
+        #if os(iOS)
+        // 撮影モードではスクリーンショットの見た目を変えないよう、設定ボタンを出さない
+        .overlay(alignment: .topTrailing) {
+            if !isScreenshotDemo {
+                settingsButton
+            }
+        }
+        #endif
         #if os(macOS)
         .frame(minWidth: DeckLayout.minimumWindowSize.width, minHeight: DeckLayout.minimumWindowSize.height)
         #endif
         .themedScreen()
+        .environment(\.themeColor, ThemeColor.displayed(stored: storedThemeColor, isScreenshotDemo: isScreenshotDemo))
+        #if os(iOS)
+        .sheet(isPresented: $isShowingSettings) {
+            NavigationStack {
+                SettingsView()
+                    .navigationTitle("設定")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("完了") { isShowingSettings = false }
+                        }
+                    }
+            }
+            .presentationDetents([.medium, .large])
+        }
+        #endif
         // シートを下へスワイプして閉じたときも、閉じる操作として既読にする
         .sheet(isPresented: $isShowingTutorial, onDismiss: { finishTutorial(.closed) }) {
             TutorialView(onDismiss: finishTutorial)
@@ -108,6 +139,23 @@ struct ContentView: View {
         }
         isShowingTutorial = false
     }
+
+    #if os(iOS)
+    /// 設定（シート）を開くボタン。タイトルと重ならないよう画面の右上に置く
+    private var settingsButton: some View {
+        Button {
+            isShowingSettings = true
+        } label: {
+            Image(systemName: "gearshape")
+                .font(.system(size: 20, weight: .medium))
+                .foregroundStyle(Theme.textSecondary)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel("設定")
+        .padding(.trailing, 4)
+    }
+    #endif
     
     /// 周波数を決める部品（ノブ・表示・スライダー・数値入力・プリセット）
     private var frequencyPanel: some View {

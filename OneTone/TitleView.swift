@@ -5,16 +5,18 @@
 
 import SwiftUI
 
-/// 虹色のタイトル。グラデーションは常に表示し、色相の回転と発光は再生中だけにする（停止中は静か）。
-/// Reduce Motion がオンのとき、またはスクリーンショットの撮影モードのときは回転させない
+/// 選んだテーマの差し色を中心にしたグラデーションのタイトル。グラデーションは常に表示し、色相の揺れと発光は再生中だけにする（停止中は静か）。
+/// 色相は選んだ色の周りで ±`Theme.titleHueSwingAmplitude` 度だけ揺らし、別の色にはしない。
+/// Reduce Motion がオンのとき、またはスクリーンショットの撮影モードのときは揺らさない
 struct TitleView: View {
     let isPlaying: Bool
+    @Environment(\.themeColor) private var themeColor
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.freezesAnimations) private var freezesAnimations
-    /// 回っていた時間だけを数える時計。止めている間の時間を角度に含めず、再開したとき色が飛ばないようにする
+    /// 揺れていた時間だけを数える時計。止めている間の時間を角度に含めず、再開したとき色が飛ばないようにする
     @State private var clock = PausableClock()
 
-    /// 色相を回すか。再生中かつ Reduce Motion がオフで、撮影モードでもないときだけ回す
+    /// 色相を揺らすか。再生中かつ Reduce Motion がオフで、撮影モードでもないときだけ揺らす
     private var isAnimating: Bool {
         isPlaying && !reduceMotion && !freezesAnimations
     }
@@ -23,7 +25,7 @@ struct TitleView: View {
         TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !isAnimating)) { context in
             title(hue: Self.hueDegrees(at: clock.elapsed(at: context.date)))
         }
-        // 表示時と、回す／止めるが切り替わるたびに時計を動かす・止める
+        // 表示時と、揺らす／止めるが切り替わるたびに時計を動かす・止める
         // （2 引数の onChange は macOS 14 からなので、表示時にも呼ばれる task(id:) を使う）
         .task(id: isAnimating) {
             if isAnimating {
@@ -44,7 +46,7 @@ struct TitleView: View {
             .minimumScaleFactor(0.5)
             .overlay(
                 LinearGradient(
-                    gradient: Gradient(colors: Theme.rainbow),
+                    gradient: Gradient(colors: themeColor.titleGradient),
                     startPoint: .leading,
                     endPoint: .trailing
                 )
@@ -60,10 +62,11 @@ struct TitleView: View {
             .neonGlow(Theme.accentSecondary, isActive: isPlaying)
     }
 
-    /// 回っていた時間（秒）に対する色相の回転角（0..<360）。`Theme.titleHueCyclePeriod` 秒で 1 周する
+    /// 揺れていた時間（秒）に対する色相のずらし角（-振幅...+振幅）。
+    /// 0 秒では 0°（選んだ色のまま）から始まり、正弦波で `Theme.titleHueSwingPeriod` 秒ごとに 1 往復する。
+    /// 端で速度が 0 になるので、折り返しでカクつかない
     static func hueDegrees(at time: TimeInterval) -> Double {
-        let progress = time / Theme.titleHueCyclePeriod
-        return (progress - floor(progress)) * 360
+        Theme.titleHueSwingAmplitude * sin(2 * .pi * time / Theme.titleHueSwingPeriod)
     }
 }
 
@@ -102,4 +105,11 @@ struct PausableClock {
     TitleView(isPlaying: true)
         .padding()
         .themedScreen()
+}
+
+#Preview("ピンクのテーマで再生中") {
+    TitleView(isPlaying: true)
+        .padding()
+        .themedScreen()
+        .environment(\.themeColor, .pink)
 }

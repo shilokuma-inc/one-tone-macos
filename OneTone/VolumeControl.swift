@@ -9,6 +9,7 @@ import SwiftUI
 struct VolumeControl: View {
     let volume: Double
     let onChange: (Double) -> Void
+    @Environment(\.themeColor) private var themeColor
 
     /// ドラッグを始めた時点の音量。つまみを掴んだ位置へ値が飛ばないよう、始点からの移動量で動かす。
     /// `@GestureState` なので、ドラッグがキャンセルされても nil に戻る
@@ -53,7 +54,7 @@ struct VolumeControl: View {
                 .frame(width: 8, height: trackHeight)
             // 今の音量までの差し色
             Capsule()
-                .fill(Theme.accent)
+                .fill(themeColor.accent)
                 .frame(width: 8, height: trackHeight * clampedVolume)
             // つまみ。中央の線で位置を読み取りやすくする
             RoundedRectangle(cornerRadius: 4)
