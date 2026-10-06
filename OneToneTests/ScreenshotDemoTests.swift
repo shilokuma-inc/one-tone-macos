@@ -33,12 +33,34 @@ final class ScreenshotDemoTests: XCTestCase {
         XCTAssertFalse(AudioManager.forScreenshot(nil).isPlaying)
     }
 
-    func testEachSceneHasDistinctWaveform() {
-        // 3 枚のスクリーンショットで別々の波形を見せる前提なので、重複したら設定ミス
-        let waveforms = ScreenshotDemo.Scene.allCases.map(\.waveform)
+    func testEachAppStoreSceneHasDistinctWaveform() {
+        // App Store の 3 枚のスクリーンショットで別々の波形を見せる前提なので、重複したら設定ミス
+        let waveforms = ScreenshotDemo.Scene.appStoreScenes.map(\.waveform)
         XCTAssertEqual(Set(waveforms).count, waveforms.count)
         for scene in ScreenshotDemo.Scene.allCases {
             XCTAssertTrue(FrequencyInput.range.contains(scene.frequency), "\(scene) の周波数が範囲外")
+        }
+    }
+
+    func testAppStoreScenesKeepTheirLaunchNames() {
+        // AppStore/screenshots.json の scene と一致させている名前なので、変わったら撮影が既定の画面に化ける
+        XCTAssertEqual(ScreenshotDemo.Scene.appStoreScenes.map(\.rawValue), ["sine", "square", "sawtooth"])
+    }
+
+    func testTutorialScenesCoverEveryTutorialPage() {
+        // チュートリアルのアセット名（Tutorial-<ページ名>）と撮影の場面名（tutorial-<ページ名>）を対応させている
+        let tutorialScenes = ScreenshotDemo.Scene.allCases.filter { !ScreenshotDemo.Scene.appStoreScenes.contains($0) }
+        XCTAssertEqual(tutorialScenes.map(\.rawValue), ["tutorial-welcome", "tutorial-playback", "tutorial-frequency", "tutorial-volume", "tutorial-waveform"])
+        XCTAssertEqual(ScreenshotDemo.scene(from: ["-screenshot-scene", "tutorial-frequency"]), .tutorialFrequency)
+    }
+
+    func testTutorialScenesShowTheirPage() {
+        XCTAssertEqual(ScreenshotDemo.Scene.tutorialFrequency.scrollTarget, .frequency)
+        XCTAssertTrue(FrequencyInput.presets.contains(ScreenshotDemo.Scene.tutorialFrequency.frequency), "プリセットが選択中に見えない")
+        XCTAssertLessThan(ScreenshotDemo.Scene.tutorialVolume.volume, 0.5)
+        XCTAssertEqual(ScreenshotDemo.Scene.tutorialWaveform.waveform, .triangle)
+        for scene in ScreenshotDemo.Scene.appStoreScenes {
+            XCTAssertNil(scene.scrollTarget, "App Store 用の \(scene) の見た目が変わる")
         }
     }
 

@@ -11,6 +11,9 @@ set -euo pipefail
 # （アプリ側は OneTone/ScreenshotDemo.swift）。1 回ビルドしたものを使い回す。
 #
 # 出力先: $SCREENSHOTS_DIR/<表示サイズ>/<言語>/01_sine.png …（既定は build/screenshots）
+#
+# 環境変数 SCENES に「ファイル名<TAB>scene」の行を渡すと、AppStore/screenshots.json の代わりにその画面を撮る
+# （チュートリアル用。Tools/capture_tutorial_screenshots.sh が使う）。そのときは App Store の寸法・枚数の検証をしない
 
 DISPLAY_TYPE="${1:?表示サイズ（例: APP_IPHONE_67）を指定してください}"
 LANGUAGES="${2:-}"
@@ -175,6 +178,7 @@ capture_when_settled() {
 
 # プロセス置換の中で失敗しても set -e では止まらず、前回の撮影結果のまま検証を通ってしまうので、先に取り出しておく
 LANGUAGE_LIST="$($CONFIG languages "$LANGUAGES")"
+SCENE_LIST="${SCENES:-$($CONFIG scenes)}"
 
 # simctl が標準入力を読んでしまわないよう、一覧は別のファイル記述子から読む
 while IFS=$'\t' read -r -u 3 language apple_language apple_locale store_locale; do
@@ -193,7 +197,7 @@ while IFS=$'\t' read -r -u 3 language apple_language apple_locale store_locale; 
             -AppleLocale "$apple_locale" >/dev/null
         capture_when_settled "$destination/$file.png"
         echo "  $file.png"
-    done 4< <($CONFIG scenes)
+    done 4< <(printf '%s\n' "$SCENE_LIST")
     echo "::endgroup::"
 done 3< <(printf '%s\n' "$LANGUAGE_LIST")
 xcrun simctl terminate "$UDID" "$BUNDLE_ID" 2>/dev/null || true
@@ -206,10 +210,12 @@ xcrun swiftc -O Tools/remove_alpha.swift -o "$REMOVE_ALPHA"
 find "$SCREENSHOTS_DIR/$DISPLAY_TYPE" -name '*.png' -print0 | xargs -0 "$REMOVE_ALPHA"
 
 # App Store Connect は寸法が 1px でも違えば弾く。
-# アップロードまで進んでから落ちると原因が遠くなるので、撮った時点で確かめる
-python3 Tools/verify_screenshots.py \
-    --directory "$SCREENSHOTS_DIR/$DISPLAY_TYPE" \
-    --sizes "$($CONFIG sizes "$DISPLAY_TYPE" | paste -sd, -)"
+# アップロードまで進んでから落ちると原因が遠くなるので、撮った時点で確かめる（App Store 用に撮るときだけ）
+if [ -z "${SCENES:-}" ]; then
+    python3 Tools/verify_screenshots.py \
+        --directory "$SCREENSHOTS_DIR/$DISPLAY_TYPE" \
+        --sizes "$($CONFIG sizes "$DISPLAY_TYPE" | paste -sd, -)"
+fi
 
 FINISHED=1
 echo "$SCREENSHOTS_DIR/$DISPLAY_TYPE に保存しました"
