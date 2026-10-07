@@ -51,7 +51,7 @@ struct ThemeColorPicker: View {
                     SwatchLabel(color: theme.accent, checkColor: theme.onAccent, name: theme.displayName, isSelected: isSelected)
                 }
                 .buttonStyle(WaveformButtonStyle(isSelected: isSelected))
-                .accessibilityLabel(theme.displayName)
+                .accessibilityLabel(Text(theme.displayName))
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
@@ -63,7 +63,7 @@ struct ThemeColorPicker: View {
 private struct SwatchLabel: View {
     let color: Color
     let checkColor: Color
-    let name: String
+    let name: LocalizedStringResource
     let isSelected: Bool
 
     var body: some View {
@@ -106,20 +106,20 @@ struct AppIconPicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             LazyVGrid(columns: columns, spacing: 8) {
-                option(nil, color: Theme.textPrimary, checkColor: Theme.background, name: "標準")
+                option(nil, color: Theme.textPrimary, checkColor: Theme.background, name: "Default")
                 ForEach(ThemeColor.allCases) { theme in
                     option(theme, color: theme.accent, checkColor: theme.onAccent, name: theme.displayName)
                 }
             }
             .disabled(!isSupported || isChanging)
             if !isSupported {
-                Text("この端末ではアイコンを変更できません")
+                Text("This device can’t change the app icon.")
                     .font(.caption)
                     .foregroundStyle(Theme.textSecondary)
             }
         }
         .padding(4)
-        .alert("アイコンを変更できませんでした", isPresented: Binding(
+        .alert("Couldn’t Change the App Icon", isPresented: Binding(
             get: { errorMessage != nil },
             set: { if !$0 { errorMessage = nil } }
         )) {
@@ -129,7 +129,7 @@ struct AppIconPicker: View {
         }
     }
 
-    private func option(_ icon: ThemeColor?, color: Color, checkColor: Color, name: String) -> some View {
+    private func option(_ icon: ThemeColor?, color: Color, checkColor: Color, name: LocalizedStringResource) -> some View {
         let isSelected = icon == current
         return Button {
             select(icon)
@@ -137,7 +137,7 @@ struct AppIconPicker: View {
             SwatchLabel(color: color, checkColor: checkColor, name: name, isSelected: isSelected)
         }
         .buttonStyle(WaveformButtonStyle(isSelected: isSelected))
-        .accessibilityLabel("アイコン: \(name)")
+        .accessibilityLabel("App Icon: \(String(localized: name))")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
