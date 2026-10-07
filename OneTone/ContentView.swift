@@ -29,6 +29,9 @@ struct ContentView: View {
     /// チュートリアルを閉じたことがあるか。Skip / 完了 / 閉じる のどれでも立てる
     @AppStorage(Tutorial.hasSeenKey) private var hasSeenTutorial = false
     @State private var isShowingTutorial = false
+    /// 起動時に保存された音量を上限まで下げたので、まだ知らせていない。チュートリアルと重なるときは閉じてから出す
+    @State private var hasPendingVolumeCapNotice: Bool
+    @State private var isShowingVolumeCapNotice = false
     /// 撮影モードで、開いた直後に見える位置まで送る部品
     private let initialScrollTarget: Section?
 
@@ -37,13 +40,15 @@ struct ContentView: View {
     /// - Parameter defaults: 周波数・音量・波形の保存先。撮影モード以外では、ここに保存した値を初期値にする
     init(screenshotScene: ScreenshotDemo.Scene? = ScreenshotDemo.scene, defaults: UserDefaults = .standard) {
         let store = ToneSettingsStore.forLaunch(screenshotScene: screenshotScene, defaults: defaults)
-        let initial = ToneSettings.initial(screenshotScene: screenshotScene, store: store)
+        let restoration = ToneSettings.initial(screenshotScene: screenshotScene, store: store)
+        let initial = restoration.settings
         _audioManager = StateObject(wrappedValue: AudioManager.forLaunch(screenshotScene: screenshotScene, settings: initial))
         _frequency = State(initialValue: initial.frequency)
         _frequencyText = State(initialValue: FrequencyInput.format(initial.frequency))
         _volume = State(initialValue: initial.volume)
         _waveform = State(initialValue: initial.waveform)
         settingsStore = store
+        _hasPendingVolumeCapNotice = State(initialValue: restoration.volumeWasCapped)
         isScreenshotDemo = screenshotScene != nil
         initialScrollTarget = screenshotScene?.scrollTarget
     }
@@ -120,15 +125,33 @@ struct ContentView: View {
         }
         #endif
         // シートを下へスワイプして閉じたときも、閉じる操作として既読にする
-        .sheet(isPresented: $isShowingTutorial, onDismiss: { finishTutorial(.closed) }) {
+        .sheet(isPresented: $isShowingTutorial, onDismiss: {
+            finishTutorial(.closed)
+            // シートが閉じ切ってから出す（シートを出している間はダイアログを重ねて出せない）
+            presentPendingVolumeCapNotice()
+        }) {
             TutorialView(onDismiss: finishTutorial)
+        }
+        .alert(Text(VolumeCapNotice.title), isPresented: $isShowingVolumeCapNotice) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(VolumeCapNotice.message)
         }
         .onAppear {
             // 初回起動時だけ自動で出す（撮影モードと -skip-tutorial 付きの起動では出さない）
             if Tutorial.shouldPresentAutomatically(hasSeen: hasSeenTutorial) {
                 openTutorial()
+            } else {
+                presentPendingVolumeCapNotice()
             }
         }
+    }
+
+    /// 起動時に音量を下げたことを 1 度だけ知らせる
+    private func presentPendingVolumeCapNotice() {
+        guard hasPendingVolumeCapNotice else { return }
+        hasPendingVolumeCapNotice = false
+        isShowingVolumeCapNotice = true
     }
 
     /// チュートリアルを開く。説明を聞いている間に鳴り続けないよう、メイン画面の音は止める
