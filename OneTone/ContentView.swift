@@ -103,11 +103,11 @@ struct ContentView: View {
         .sheet(isPresented: $isShowingSettings) {
             NavigationStack {
                 SettingsView()
-                    .navigationTitle("設定")
+                    .navigationTitle("Settings")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
-                            Button("完了") { isShowingSettings = false }
+                            Button("Done") { isShowingSettings = false }
                         }
                     }
             }
@@ -152,7 +152,7 @@ struct ContentView: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
-        .accessibilityLabel("設定")
+        .accessibilityLabel("Settings")
         .padding(.trailing, 4)
     }
     #endif

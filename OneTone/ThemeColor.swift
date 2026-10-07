@@ -25,17 +25,17 @@ enum ThemeColor: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    /// 設定画面に出す名前
-    var displayName: String {
+    /// 設定画面に出す名前（言語ごとに訳す）
+    var displayName: LocalizedStringResource {
         switch self {
-        case .cyan: "シアン"
-        case .blue: "ブルー"
-        case .purple: "パープル"
-        case .pink: "ピンク"
-        case .red: "レッド"
-        case .orange: "オレンジ"
-        case .yellow: "イエロー"
-        case .green: "グリーン"
+        case .cyan: "Cyan"
+        case .blue: "Blue"
+        case .purple: "Purple"
+        case .pink: "Pink"
+        case .red: "Red"
+        case .orange: "Orange"
+        case .yellow: "Yellow"
+        case .green: "Green"
         }
     }
 
