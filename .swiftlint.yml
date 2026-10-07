@@ -13,6 +13,8 @@ custom_rules:
     # 「文字列リテラルに日本語があれば違反」にすると、翻訳対象ではないもの
     # （#Preview の名前、開発者向けのログ、precondition のメッセージ）まで拾ってノイズになる。
     # そのため **文言を受け取る API に直接渡している日本語** に絞っている（otanecho-ios と同じ考え方）。
-    regex: '(?:(?:Text|Button|Label|TextField|Toggle|Picker|Section|Menu|ContentUnavailableView|LocalizedStringResource|navigationTitle|alert|confirmationDialog|help|accessibilityLabel|accessibilityValue|accessibilityHint|displayName|description|prompt)\(|localized:|verbatim:)\s*"[^"\n]*[ぁ-んァ-ヶ一-龥]'
+    # 引数が三項演算子（`isPlaying ? "停止" : "再生"`）のときは、どちらの分岐の日本語も拾う。
+    # 引数の中のどこでも拾う形にはしない（`String(localized:comment:)` の comment の日本語まで警告してしまうため）。
+    regex: '(?:(?:Text|Button|Label|TextField|Toggle|Picker|Section|Menu|ContentUnavailableView|LocalizedStringResource|navigationTitle|alert|confirmationDialog|help|accessibilityLabel|accessibilityValue|accessibilityHint|displayName|description|prompt)\(|localized:|verbatim:)\s*(?:[^"()\n]*\?\s*)?(?:"[^"\n]*"\s*:\s*)?"[^"\n]*[ぁ-んァ-ヶ一-龥]'
     message: "UI に出る文言は String Catalog 経由にしてください（Text / LocalizedStringResource / String(localized:) にソースの英語を書き、日本語は訳として入れる）。"
     severity: warning
