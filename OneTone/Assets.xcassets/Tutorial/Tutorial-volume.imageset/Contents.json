@@ -7,10 +7,68 @@
     {
       "filename" : "mac.png",
       "idiom" : "mac"
+    },
+    {
+      "filename" : "mac-ja.png",
+      "idiom" : "mac",
+      "locale" : "ja"
+    },
+    {
+      "filename" : "mac-zh-Hans.png",
+      "idiom" : "mac",
+      "locale" : "zh-Hans"
+    },
+    {
+      "filename" : "mac-zh-Hant.png",
+      "idiom" : "mac",
+      "locale" : "zh-Hant"
+    },
+    {
+      "filename" : "mac-ko.png",
+      "idiom" : "mac",
+      "locale" : "ko"
+    },
+    {
+      "filename" : "mac-es.png",
+      "idiom" : "mac",
+      "locale" : "es"
+    },
+    {
+      "filename" : "mac-fr.png",
+      "idiom" : "mac",
+      "locale" : "fr"
+    },
+    {
+      "filename" : "mac-de.png",
+      "idiom" : "mac",
+      "locale" : "de"
+    },
+    {
+      "filename" : "mac-it.png",
+      "idiom" : "mac",
+      "locale" : "it"
+    },
+    {
+      "filename" : "mac-pt-BR.png",
+      "idiom" : "mac",
+      "locale" : "pt-BR"
+    },
+    {
+      "filename" : "mac-ru.png",
+      "idiom" : "mac",
+      "locale" : "ru"
+    },
+    {
+      "filename" : "mac-id.png",
+      "idiom" : "mac",
+      "locale" : "id"
     }
   ],
   "info" : {
     "author" : "xcode",
     "version" : 1
+  },
+  "properties" : {
+    "localizable" : true
   }
 }
