@@ -29,10 +29,12 @@ final class TutorialTests: XCTestCase {
         XCTAssertEqual(Tutorial.pages.map(\.id), TutorialPage.ID.allCases)
     }
 
+    // 文言は端末の言語で訳されるので、ロケールに依存しないようキー（英語の原文）で比べる
+
     func testEveryPageHasTextAndDistinctImage() {
         for page in Tutorial.pages {
-            XCTAssertFalse(page.title.isEmpty, "\(page.id) のタイトルが空")
-            XCTAssertFalse(page.message.isEmpty, "\(page.id) の本文が空")
+            XCTAssertFalse(page.title.key.isEmpty, "\(page.id) のタイトルが空")
+            XCTAssertFalse(page.message.key.isEmpty, "\(page.id) の本文が空")
         }
         let imageNames = Tutorial.pages.map(\.imageName)
         XCTAssertEqual(Set(imageNames).count, imageNames.count)
@@ -41,7 +43,7 @@ final class TutorialTests: XCTestCase {
 
     func testVolumePageWarnsAboutHearingAndSpeakers() throws {
         let page = try XCTUnwrap(Tutorial.pages.first { $0.id == .volume })
-        let caution = try XCTUnwrap(page.caution)
+        let caution = try XCTUnwrap(page.caution).key
         XCTAssertTrue(caution.localizedCaseInsensitiveContains("hearing"))
         XCTAssertTrue(caution.localizedCaseInsensitiveContains("speakers"))
     }
@@ -56,14 +58,14 @@ final class TutorialTests: XCTestCase {
     }
 
     func testFrequencyPageMentionsRangeAndPresets() throws {
-        let message = try XCTUnwrap(Tutorial.pages.first { $0.id == .frequency }).message
+        let message = try XCTUnwrap(Tutorial.pages.first { $0.id == .frequency }).message.key
         for label in ["20 Hz", "20 kHz"] + FrequencyInput.presets.map(FrequencyInput.presetLabel) {
             XCTAssertTrue(message.contains(label), "周波数ページに \(label) が無い")
         }
     }
 
     func testWaveformPageMentionsEveryWaveform() throws {
-        let message = try XCTUnwrap(Tutorial.pages.first { $0.id == .waveform }).message
+        let message = try XCTUnwrap(Tutorial.pages.first { $0.id == .waveform }).message.key
         for waveform in Waveform.allCases {
             XCTAssertTrue(message.contains(waveform.displayName), "波形ページに \(waveform.displayName) が無い")
         }

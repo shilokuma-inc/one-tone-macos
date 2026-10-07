@@ -118,6 +118,12 @@ xcrun simctl status_bar "$UDID" override \
 
 # MARK: - ビルド
 
+# SwiftLint のビルドツールプラグインの信頼確認は、Xcode.app で一度信頼すれば要らない。
+# 信頼確認を飛ばすのは、自分のブランチなど中身を確かめたチェックアウトで SKIP_PACKAGE_PLUGIN_VALIDATION=1 を付けたときだけ
+PLUGIN_OPTIONS=()
+if [ "${SKIP_PACKAGE_PLUGIN_VALIDATION:-0}" = 1 ]; then
+    PLUGIN_OPTIONS+=(-skipPackagePluginValidation)
+fi
 echo "$SCHEME をビルドします"
 xcodebuild build \
     -project "$PROJECT" \
@@ -126,6 +132,7 @@ xcodebuild build \
     -destination "platform=iOS Simulator,id=$UDID" \
     -derivedDataPath "$DERIVED_DATA" \
     -quiet \
+    ${PLUGIN_OPTIONS[@]+"${PLUGIN_OPTIONS[@]}"} \
     CODE_SIGNING_ALLOWED=NO
 
 SETTINGS="$(xcodebuild -showBuildSettings \
@@ -177,7 +184,9 @@ capture_when_settled() {
 }
 
 # プロセス置換の中で失敗しても set -e では止まらず、前回の撮影結果のまま検証を通ってしまうので、先に取り出しておく
-LANGUAGE_LIST="$($CONFIG languages "$LANGUAGES")"
+# 既定は App Store に載せる言語（AppStore/languages.json）。LANGUAGES_COMMAND=app-languages で
+# アプリの対応言語（Localization/supported-languages.json）から選ぶ（チュートリアル用）
+LANGUAGE_LIST="$($CONFIG "${LANGUAGES_COMMAND:-languages}" "$LANGUAGES")"
 SCENE_LIST="${SCENES:-$($CONFIG scenes)}"
 
 # simctl が標準入力を読んでしまわないよう、一覧は別のファイル記述子から読む

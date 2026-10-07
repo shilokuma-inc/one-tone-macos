@@ -43,6 +43,12 @@ CONFIG="python3 Tools/app_store_config.py"
 
 # 配布ビルド（Upload ワークフロー）と同じ ad-hoc 署名にするが、App Sandbox は外す。
 # サンドボックス内からは指定した保存先に PNG を書けないため。撮影用のビルドだけで、配布ビルドには影響しない
+# SwiftLint のビルドツールプラグインの信頼確認は、Xcode.app で一度信頼すれば要らない。
+# 信頼確認を飛ばすのは、自分のブランチなど中身を確かめたチェックアウトで SKIP_PACKAGE_PLUGIN_VALIDATION=1 を付けたときだけ
+PLUGIN_OPTIONS=()
+if [ "${SKIP_PACKAGE_PLUGIN_VALIDATION:-0}" = 1 ]; then
+    PLUGIN_OPTIONS+=(-skipPackagePluginValidation)
+fi
 echo "$SCHEME を macOS 向けにビルドします（撮影用・サンドボックス無し）"
 xcodebuild build \
     -project "$PROJECT" \
@@ -51,6 +57,7 @@ xcodebuild build \
     -destination 'platform=macOS' \
     -derivedDataPath "$DERIVED_DATA" \
     -quiet \
+    ${PLUGIN_OPTIONS[@]+"${PLUGIN_OPTIONS[@]}"} \
     CODE_SIGN_STYLE=Manual \
     CODE_SIGN_IDENTITY=- \
     PROVISIONING_PROFILE_SPECIFIER= \
@@ -130,7 +137,9 @@ render_scene() {
 }
 
 # プロセス置換の中で失敗しても set -e では止まらないので、先に取り出しておく
-LANGUAGE_LIST="$($CONFIG languages "$LANGUAGES")"
+# 既定は App Store に載せる言語（AppStore/languages.json）。LANGUAGES_COMMAND=app-languages で
+# アプリの対応言語（Localization/supported-languages.json）から選ぶ（チュートリアル用）
+LANGUAGE_LIST="$($CONFIG "${LANGUAGES_COMMAND:-languages}" "$LANGUAGES")"
 SCENE_LIST="${SCENES:-$($CONFIG scenes)}"
 
 while IFS=$'\t' read -r -u 3 language apple_language apple_locale store_locale; do

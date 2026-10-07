@@ -12,6 +12,7 @@
 - `NSHostingView` の描画はウィンドウに載せて RunLoop を 1 秒ほど回してから。載せずに描くと SwiftUI がレイアウトを進めず空になる（2026-10-05）
 - App Sandbox 付きのビルドは指定した保存先に PNG を書けない。撮影用のビルドだけ `CODE_SIGN_ENTITLEMENTS= ENABLE_APP_SANDBOX=NO` で外す（配布ビルドには影響しない）（2026-10-05）
 - 参考（ウィンドウを撮る方式を試したときの癖）: App Sandbox 付きの実行ファイルを直接起動するとウィンドウが出ない（`open -n -a` なら出る）。`-ApplePersistenceIgnoreState YES` を付けると `WindowGroup` がウィンドウを出さない。`open` で起動したプロセスのパスは `/private/var/…` に解決される。起動直後のウィンドウ番号は数秒で無効になることがある。起動時に最初の `TextField` へフォーカスが当たり数字が選択表示になる（2026-10-05）
+- 他のビルドと並走して Mac が重いと、1 枚を描き終えるまでの既定の待ち時間（`RENDER_TIMEOUT=60` 秒）を超えて止まることがある。そのときは `RENDER_TIMEOUT=240` などを付け、`Tools/capture_tutorial_screenshots.sh mac <失敗した言語>` のように言語を絞って撮り直す（2026-10-07）
 
 ## iOS のスクリーンショット撮影（Tools/capture_screenshots.sh）
 
@@ -20,6 +21,14 @@
 ## ローカルビルド
 
 - 手元に「Mac Development」の署名証明書が無いと、macOS 向けの `xcodebuild build` / `test` が署名で失敗する（iOS Simulator は通る）。CI と同じく build は `CODE_SIGNING_ALLOWED=NO`、macOS の `test` は `CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=` のアドホック署名で通る。`platform=macOS` だけだと arm64 / x86_64 の 2 つに一致するので `arch=arm64` も付ける（2026-10-06）
+- `xcodebuild` でビルドしても `.xcstrings` にはキーが足されない（Xcode.app でのビルド時だけ自動で足される）。コマンドラインでは `python3 Tools/sync_string_catalogs.py` でビルド成果物の `.stringsdata` を `xcstringstool sync` に渡して取り込む。`#if os(...)` の片方にしか無い文言が stale にされないよう、macOS と iOS の両方の `.stringsdata` をまとめて渡す（2026-10-07）
+- SwiftLint はビルドツールプラグイン（SwiftLintPlugins）で入れているので、コマンドラインの `xcodebuild` は、Xcode.app でプラグインを一度信頼していないと信頼確認で止まる。`-skipPackagePluginValidation` で飛ばせるが、未確認の PR をチェックアウトしたときに付けるとそのプラグインを確認なしで動かすことになるので、手元のスクリプト（`capture_*.sh` / `sync_string_catalogs.py`）は `SKIP_PACKAGE_PLUGIN_VALIDATION=1` を付けたときだけ付ける。CI は `defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidatation -bool YES`。DerivedData の `SourcePackages/artifacts` にある `swiftlint` を単体で動かすときは `DEVELOPER_DIR` を Xcode.app に向けないと sourcekitdInProc が読めずに落ちる（2026-10-07）
+- asset catalog の画像セットは、`locale` の無い画像（既定）と `"locale" : "ja"` などを付けた画像を同じ Contents.json に並べ、`"properties" : { "localizable" : true }` を付けると言語ごとに出し分けられる（macOS / iOS とも actool が受け付け、`assetutil --info` で Localization ごとの rendition になる）。対応外の言語の端末では既定の画像が出る（2026-10-07）
+
+## ローカライズ
+
+- `xcstringstool sync` は、引数が 2 つ以上の文言（`Page %lld of %lld` など）を取り込むと、en に位置指定つきの値（`Page %1$lld of %2$lld`）を `state: new` で書く。訳を入れたら en の state も `translated` にする（2026-10-07）
+- `LocalizedStringResource` にした文言をテストで比べるときは、`String(localized:)` ではなく `.key`（英語の原文）で比べると、テストを動かす Mac の言語に左右されない（2026-10-07）
 
 ## GitHub Actions
 

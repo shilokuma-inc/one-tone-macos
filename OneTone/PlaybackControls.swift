@@ -24,14 +24,15 @@ struct PlaybackControls: View {
                     }
                 }
                 .frame(width: 28, height: 28)
-                Text(isPlaying ? "STOP" : "PLAY")
+                // 大文字のラベルは機材の刻印として英語のまま出す（訳さない）
+                Text(verbatim: isPlaying ? "STOP" : "PLAY")
                     .font(.system(.headline, design: .rounded).weight(.heavy))
                     .tracking(2)
             }
         }
         .buttonStyle(ToggleButtonStyle(isOn: isPlaying))
-        .accessibilityLabel(isPlaying ? "Stop Tone" : "Play Tone")
-        .accessibilityValue(isPlaying ? "Playing" : "Stopped")
+        .accessibilityLabel(isPlaying ? Text("Stop Tone") : Text("Play Tone"))
+        .accessibilityValue(isPlaying ? Text("Playing") : Text("Stopped"))
     }
 }
 

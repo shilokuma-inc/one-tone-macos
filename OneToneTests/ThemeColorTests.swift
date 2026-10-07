@@ -23,7 +23,7 @@ final class ThemeColorTests: XCTestCase {
     func testRawValuesAndNamesAreUnique() {
         let rawValues = ThemeColor.allCases.map(\.rawValue)
         XCTAssertEqual(Set(rawValues).count, rawValues.count)
-        let names = ThemeColor.allCases.map(\.displayName)
+        let names = ThemeColor.allCases.map { String(localized: $0.displayName) }
         XCTAssertEqual(Set(names).count, names.count)
         XCTAssertFalse(names.contains(""))
     }
