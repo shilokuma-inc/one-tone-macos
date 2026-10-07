@@ -118,6 +118,12 @@ xcrun simctl status_bar "$UDID" override \
 
 # MARK: - ビルド
 
+# SwiftLint のビルドツールプラグインの信頼確認は、Xcode.app で一度信頼すれば要らない。
+# 信頼確認を飛ばすのは、自分のブランチなど中身を確かめたチェックアウトで SKIP_PACKAGE_PLUGIN_VALIDATION=1 を付けたときだけ
+PLUGIN_OPTIONS=()
+if [ "${SKIP_PACKAGE_PLUGIN_VALIDATION:-0}" = 1 ]; then
+    PLUGIN_OPTIONS+=(-skipPackagePluginValidation)
+fi
 echo "$SCHEME をビルドします"
 xcodebuild build \
     -project "$PROJECT" \
@@ -126,7 +132,7 @@ xcodebuild build \
     -destination "platform=iOS Simulator,id=$UDID" \
     -derivedDataPath "$DERIVED_DATA" \
     -quiet \
-    -skipPackagePluginValidation \
+    ${PLUGIN_OPTIONS[@]+"${PLUGIN_OPTIONS[@]}"} \
     CODE_SIGNING_ALLOWED=NO
 
 SETTINGS="$(xcodebuild -showBuildSettings \
