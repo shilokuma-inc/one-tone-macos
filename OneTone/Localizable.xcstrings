@@ -3,25 +3,7 @@
   "strings" : {
     "%@ Hz" : {
       "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Hz"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Hz"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Hz"
-          }
-        },
-        "ko" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ Hz"
@@ -39,13 +21,25 @@
             "value" : "%@ Hz"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ Hz"
           }
         },
         "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Hz"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Hz"
+          }
+        },
+        "ko" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ Hz"
@@ -63,7 +57,13 @@
             "value" : "%@ Hz"
           }
         },
-        "id" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Hz"
+          }
+        },
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ Hz"
@@ -73,28 +73,10 @@
     },
     "%lld%%" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
+            "value" : "%lld %%"
           }
         },
         "es" : {
@@ -109,13 +91,25 @@
             "value" : "%lld %%"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld %%"
+            "value" : "%lld%%"
           }
         },
         "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%%"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%%"
+          }
+        },
+        "ko" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld%%"
@@ -133,7 +127,13 @@
             "value" : "%lld %%"
           }
         },
-        "id" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%%"
+          }
+        },
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld%%"
@@ -143,28 +143,10 @@
     },
     "Frequency" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "周波数"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "频率"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "頻率"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "주파수"
+            "value" : "Frequenz"
           }
         },
         "es" : {
@@ -179,16 +161,28 @@
             "value" : "Fréquence"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Frequenz"
+            "value" : "Frekuensi"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Frequenza"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周波数"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "주파수"
           }
         },
         "pt-BR" : {
@@ -203,38 +197,26 @@
             "value" : "Частота"
           }
         },
-        "id" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Frekuensi"
+            "value" : "频率"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "頻率"
           }
         }
       }
     },
     "Frequency: %@ Hz" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "周波数: %@ Hz"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "频率：%@ Hz"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "頻率：%@ Hz"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "주파수: %@ Hz"
+            "value" : "Frequenz: %@ Hz"
           }
         },
         "es" : {
@@ -249,16 +231,28 @@
             "value" : "Fréquence : %@ Hz"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Frequenz: %@ Hz"
+            "value" : "Frekuensi: %@ Hz"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Frequenza: %@ Hz"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周波数: %@ Hz"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "주파수: %@ Hz"
           }
         },
         "pt-BR" : {
@@ -273,38 +267,26 @@
             "value" : "Частота: %@ Hz"
           }
         },
-        "id" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Frekuensi: %@ Hz"
+            "value" : "频率：%@ Hz"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "頻率：%@ Hz"
           }
         }
       }
     },
     "Level" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "レベル"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "电平"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "電平"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "레벨"
+            "value" : "Pegel"
           }
         },
         "es" : {
@@ -319,16 +301,28 @@
             "value" : "Niveau"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pegel"
+            "value" : "Level"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Livello"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "レベル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "레벨"
           }
         },
         "pt-BR" : {
@@ -343,38 +337,26 @@
             "value" : "Уровень"
           }
         },
-        "id" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Level"
+            "value" : "电平"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "電平"
           }
         }
       }
     },
     "Oscilloscope" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "オシロスコープ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "示波器"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "示波器"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "오실로스코프"
+            "value" : "Oszilloskop"
           }
         },
         "es" : {
@@ -389,16 +371,28 @@
             "value" : "Oscilloscope"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Oszilloskop"
+            "value" : "Osiloskop"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Oscilloscopio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オシロスコープ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오실로스코프"
           }
         },
         "pt-BR" : {
@@ -413,38 +407,26 @@
             "value" : "Осциллограф"
           }
         },
-        "id" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osiloskop"
+            "value" : "示波器"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "示波器"
           }
         }
       }
     },
     "Play Tone" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音を鳴らす"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "播放音调"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "播放音調"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "톤 재생"
+            "value" : "Ton abspielen"
           }
         },
         "es" : {
@@ -459,16 +441,28 @@
             "value" : "Jouer le son"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ton abspielen"
+            "value" : "Putar nada"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Riproduci tono"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音を鳴らす"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "톤 재생"
           }
         },
         "pt-BR" : {
@@ -483,38 +477,26 @@
             "value" : "Воспроизвести тон"
           }
         },
-        "id" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Putar nada"
+            "value" : "播放音调"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放音調"
           }
         }
       }
     },
     "Playing" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "再生中"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在播放"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "播放中"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "재생 중"
+            "value" : "Wird abgespielt"
           }
         },
         "es" : {
@@ -529,16 +511,28 @@
             "value" : "Lecture en cours"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wird abgespielt"
+            "value" : "Sedang diputar"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "In riproduzione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再生中"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "재생 중"
           }
         },
         "pt-BR" : {
@@ -553,38 +547,26 @@
             "value" : "Воспроизводится"
           }
         },
-        "id" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sedang diputar"
+            "value" : "正在播放"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放中"
           }
         }
       }
     },
     "Showing output waveform" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "出力中の波形を表示しています"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在显示输出波形"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在顯示輸出波形"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "출력 파형 표시 중"
+            "value" : "Ausgangswellenform wird angezeigt"
           }
         },
         "es" : {
@@ -599,16 +581,28 @@
             "value" : "Affichage de la forme d’onde de sortie"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ausgangswellenform wird angezeigt"
+            "value" : "Menampilkan bentuk gelombang keluaran"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Visualizzazione della forma d’onda in uscita"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "出力中の波形を表示しています"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "출력 파형 표시 중"
           }
         },
         "pt-BR" : {
@@ -623,38 +617,26 @@
             "value" : "Отображается выходной сигнал"
           }
         },
-        "id" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Menampilkan bentuk gelombang keluaran"
+            "value" : "正在显示输出波形"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在顯示輸出波形"
           }
         }
       }
     },
     "Silent" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無音"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "静音"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "靜音"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "무음"
+            "value" : "Stumm"
           }
         },
         "es" : {
@@ -669,16 +651,28 @@
             "value" : "Silence"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stumm"
+            "value" : "Hening"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Silenzio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無音"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "무음"
           }
         },
         "pt-BR" : {
@@ -693,38 +687,26 @@
             "value" : "Тишина"
           }
         },
-        "id" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hening"
+            "value" : "静音"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "靜音"
           }
         }
       }
     },
     "Stop Tone" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音を止める"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "停止音调"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "停止音調"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "톤 정지"
+            "value" : "Ton stoppen"
           }
         },
         "es" : {
@@ -739,16 +721,28 @@
             "value" : "Arrêter le son"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ton stoppen"
+            "value" : "Hentikan nada"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ferma tono"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音を止める"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "톤 정지"
           }
         },
         "pt-BR" : {
@@ -763,38 +757,26 @@
             "value" : "Остановить тон"
           }
         },
-        "id" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hentikan nada"
+            "value" : "停止音调"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止音調"
           }
         }
       }
     },
     "Stopped" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "停止中"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已停止"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已停止"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "정지됨"
+            "value" : "Gestoppt"
           }
         },
         "es" : {
@@ -809,16 +791,28 @@
             "value" : "Arrêté"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gestoppt"
+            "value" : "Berhenti"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fermo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止中"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "정지됨"
           }
         },
         "pt-BR" : {
@@ -833,38 +827,26 @@
             "value" : "Остановлено"
           }
         },
-        "id" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Berhenti"
+            "value" : "已停止"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停止"
           }
         }
       }
     },
     "Volume" : {
       "localizations" : {
-        "ja" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音量"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音量"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音量"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음량"
+            "value" : "Lautstärke"
           }
         },
         "es" : {
@@ -879,16 +861,28 @@
             "value" : "Volume"
           }
         },
-        "de" : {
+        "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lautstärke"
+            "value" : "Volume"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Volume"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音量"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음량"
           }
         },
         "pt-BR" : {
@@ -903,10 +897,16 @@
             "value" : "Громкость"
           }
         },
-        "id" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Volume"
+            "value" : "音量"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音量"
           }
         }
       }
