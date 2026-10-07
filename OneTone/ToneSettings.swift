@@ -15,13 +15,35 @@ struct ToneSettings: Equatable {
     /// 保存値が無い・読めないときの値（440Hz / 50% / Sine）
     static let `default` = ToneSettings(frequency: FrequencyInput.defaultFrequency, volume: 0.5, waveform: .sine)
     static let volumeRange: ClosedRange<Double> = 0...1
+    /// 起動時に復元する音量の上限。保存値がこれを超えていたら、大音量で鳴らないようここまで下げる（ちょうどの値は下げない）
+    static let maximumRestoredVolume = 0.2
 
     /// 起動時の初期値。撮影モードではシーンの値を使い、保存値は読まない（撮影画像が実行環境の保存値で変わらないように）
-    static func initial(screenshotScene: ScreenshotDemo.Scene?, store: ToneSettingsStore?) -> ToneSettings {
+    static func initial(screenshotScene: ScreenshotDemo.Scene?, store: ToneSettingsStore?) -> ToneSettingsRestoration {
         if let screenshotScene {
-            return ToneSettings(frequency: screenshotScene.frequency, volume: screenshotScene.volume, waveform: screenshotScene.waveform)
+            let settings = ToneSettings(frequency: screenshotScene.frequency, volume: screenshotScene.volume, waveform: screenshotScene.waveform)
+            return ToneSettingsRestoration(settings: settings, volumeWasCapped: false)
         }
-        return store?.load() ?? .default
+        return store?.restore() ?? ToneSettingsRestoration(settings: .default, volumeWasCapped: false)
+    }
+}
+
+/// 起動時に復元した設定と、音量を上限まで下げたかどうか（下げたらメイン画面がダイアログで知らせる）
+struct ToneSettingsRestoration: Equatable {
+    let settings: ToneSettings
+    let volumeWasCapped: Bool
+}
+
+/// 復元時に音量を下げたことを知らせるダイアログの文言
+enum VolumeCapNotice {
+    static let title: LocalizedStringResource = "Volume Lowered"
+
+    static var message: LocalizedStringResource {
+        "To prevent a sudden loud sound, the volume was lowered to \(percent)%."
+    }
+
+    static var percent: Int {
+        Int((ToneSettings.maximumRestoredVolume * 100).rounded())
     }
 }
 
@@ -50,6 +72,19 @@ struct ToneSettingsStore {
             volume: storedDouble(forKey: Self.volumeKey, in: ToneSettings.volumeRange) ?? fallback.volume,
             waveform: storedWaveform() ?? fallback.waveform
         )
+    }
+
+    /// 起動時の復元。保存された音量が上限を超えていたら上限まで下げ、下げた値を保存し直す。
+    /// 保存値が無い・壊れていて既定値（50%）になったときは、保存された音量ではないので下げない
+    func restore() -> ToneSettingsRestoration {
+        var settings = load()
+        guard let storedVolume = storedDouble(forKey: Self.volumeKey, in: ToneSettings.volumeRange),
+              storedVolume > ToneSettings.maximumRestoredVolume else {
+            return ToneSettingsRestoration(settings: settings, volumeWasCapped: false)
+        }
+        settings.volume = ToneSettings.maximumRestoredVolume
+        save(volume: settings.volume)
+        return ToneSettingsRestoration(settings: settings, volumeWasCapped: true)
     }
 
     func save(frequency: Double) {
