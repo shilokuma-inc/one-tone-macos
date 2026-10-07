@@ -152,9 +152,15 @@ def compare_specifiers(source: str, translation: str) -> str | None:
             f"訳: {_format_specifiers(actual)}）"
         )
 
-    # 訳が位置引数を使っている場合は、その位置の型がソースの同じ位置と一致すること
+    # 引数の番号ごとの型。ソースが位置引数（%2$@ %1$lld など）なら番号で、そうでなければ出現順で引く
+    expected_by_index = {(i if i is not None else n + 1): k for n, (i, k) in enumerate(expected)}
+
+    # 訳が位置引数を使っている場合は、その番号の型がソースの同じ番号と一致すること
     indexed = [(i, k) for i, k in actual if i is not None]
     if not indexed:
+        for n, (_, kind) in enumerate(actual):
+            if expected_by_index.get(n + 1) != kind:
+                return f"{n + 1} 番目の引数の型がソースと違います（ソース: {expected_by_index.get(n + 1)} / 訳: {kind}）"
         return None
     if len(indexed) != len(actual):
         return "位置引数（%1$@ など）と位置指定なしの指定子が混在しています"
@@ -162,8 +168,8 @@ def compare_specifiers(source: str, translation: str) -> str | None:
     if positions != list(range(1, len(expected) + 1)):
         return f"位置引数が 1〜{len(expected)} を網羅していません（{positions}）"
     for index, kind in indexed:
-        if expected[index - 1][1] != kind:
-            return f"位置引数 %{index}$ の型がソースと違います（ソース: {expected[index - 1][1]} / 訳: {kind}）"
+        if expected_by_index.get(index) != kind:
+            return f"位置引数 %{index}$ の型がソースと違います（ソース: {expected_by_index.get(index)} / 訳: {kind}）"
     return None
 
 
