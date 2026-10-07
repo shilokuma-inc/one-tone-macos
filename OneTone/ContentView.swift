@@ -137,6 +137,11 @@ struct ContentView: View {
         } message: {
             Text(VolumeCapNotice.message)
         }
+        // 設定画面（macOS は別ウィンドウ、iOS はシート）で既定値に戻したら、表示と再生中の音も戻す。再生は止めない
+        .onReceive(NotificationCenter.default.publisher(for: ToneSettingsStore.didResetNotification)) { notification in
+            guard let settingsStore, notification.object as? UserDefaults === settingsStore.defaults else { return }
+            show(.default)
+        }
         .onAppear {
             // 初回起動時だけ自動で出す（撮影モードと -skip-tutorial 付きの起動では出さない）
             if Tutorial.shouldPresentAutomatically(hasSeen: hasSeenTutorial) {
@@ -240,6 +245,15 @@ struct ContentView: View {
         settingsStore?.save(waveform: newWaveform)
     }
     
+    /// 表示と音に反映する。保存はしない（既定値に戻したときは保存値を消したままにする）
+    private func show(_ settings: ToneSettings) {
+        frequency = settings.frequency
+        frequencyText = FrequencyInput.format(settings.frequency)
+        volume = settings.volume
+        waveform = settings.waveform
+        audioManager.apply(settings)
+    }
+
     /// 範囲外や数値でない入力は反映せず、入力欄を現在の周波数に戻す
     private func submitFrequencyText() {
         if let newFrequency = FrequencyInput.parse(frequencyText) {

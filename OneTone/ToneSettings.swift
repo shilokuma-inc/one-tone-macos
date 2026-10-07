@@ -47,11 +47,27 @@ enum VolumeCapNotice {
     }
 }
 
+/// 設定画面で既定値に戻す前の確認ダイアログの文言
+enum ToneSettingsResetConfirmation {
+    static let title: LocalizedStringResource = "Reset to Defaults?"
+
+    /// 既定値は定数から作る（440Hz / 50% / Sine）。波形名は訳さないので `String` のまま埋め込む
+    static var message: LocalizedStringResource {
+        let settings = ToneSettings.default
+        let frequency = FrequencyInput.format(settings.frequency)
+        let percent = Int((settings.volume * 100).rounded())
+        let waveform = settings.waveform.displayName
+        return "Frequency, volume, and waveform will return to \(frequency) Hz, \(percent)%, and \(waveform)."
+    }
+}
+
 /// 音の設定の読み書き（`UserDefaults` に端末内だけで保存し、iCloud では同期しない）。テストでは専用の suite の `UserDefaults` を渡す
 struct ToneSettingsStore {
     static let frequencyKey = "toneFrequency"
     static let volumeKey = "toneVolume"
     static let waveformKey = "toneWaveform"
+    /// 設定画面で既定値に戻したときに送る通知。`object` は保存先の `UserDefaults`
+    static let didResetNotification = Notification.Name("ToneSettingsStore.didReset")
 
     let defaults: UserDefaults
 
@@ -85,6 +101,15 @@ struct ToneSettingsStore {
         settings.volume = ToneSettings.maximumRestoredVolume
         save(volume: settings.volume)
         return ToneSettingsRestoration(settings: settings, volumeWasCapped: true)
+    }
+
+    /// 既定値に戻す。保存値を消して既定値で起動するようにし（既定の 50% は保存された音量ではないので、次の起動で 20% に下げない）、
+    /// 開いているメイン画面に表示と再生中の音を戻すよう知らせる
+    func reset() {
+        for key in [Self.frequencyKey, Self.volumeKey, Self.waveformKey] {
+            defaults.removeObject(forKey: key)
+        }
+        NotificationCenter.default.post(name: Self.didResetNotification, object: defaults)
     }
 
     func save(frequency: Double) {

@@ -225,6 +225,47 @@ final class ToneSettingsTests: XCTestCase {
         XCTAssertEqual(VolumeCapNotice.percent, 20)
     }
 
+    // MARK: - 既定値に戻す
+
+    func testResetRemovesSavedValues() {
+        let store = ToneSettingsStore(defaults: defaults)
+        store.save(frequency: 15000)
+        store.save(volume: 0.9)
+        store.save(waveform: .sawtooth)
+        store.reset()
+        XCTAssertNil(defaults.object(forKey: ToneSettingsStore.frequencyKey))
+        XCTAssertNil(defaults.object(forKey: ToneSettingsStore.volumeKey))
+        XCTAssertNil(defaults.object(forKey: ToneSettingsStore.waveformKey))
+        XCTAssertEqual(store.load(), .default)
+    }
+
+    func testNextLaunchAfterResetIsDefaultWithoutCapping() {
+        let store = ToneSettingsStore(defaults: defaults)
+        store.save(volume: 0.9)
+        store.reset()
+        // 既定の 50% は保存された音量ではないので、20% に下げずダイアログも出さない
+        XCTAssertEqual(store.restore(), ToneSettingsRestoration(settings: .default, volumeWasCapped: false))
+    }
+
+    func testResetLeavesOtherSettingsUntouched() {
+        defaults.set(true, forKey: Tutorial.hasSeenKey)
+        defaults.set("other", forKey: ThemeColor.storageKey)
+        ToneSettingsStore(defaults: defaults).reset()
+        XCTAssertTrue(defaults.bool(forKey: Tutorial.hasSeenKey))
+        XCTAssertEqual(defaults.string(forKey: ThemeColor.storageKey), "other")
+    }
+
+    func testResetNotifiesWithItsDefaults() {
+        let posted = expectation(forNotification: ToneSettingsStore.didResetNotification, object: defaults)
+        ToneSettingsStore(defaults: defaults).reset()
+        wait(for: [posted], timeout: 1)
+    }
+
+    func testResetConfirmationUsesFormattedKey() {
+        XCTAssertEqual(ToneSettingsResetConfirmation.title.key, "Reset to Defaults?")
+        XCTAssertEqual(ToneSettingsResetConfirmation.message.key, "Frequency, volume, and waveform will return to %@ Hz, %lld%%, and %@.")
+    }
+
     // MARK: - AudioManager への反映
 
     func testApplySetsAllValuesWithoutStartingPlayback() {
