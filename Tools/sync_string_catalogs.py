@@ -42,6 +42,8 @@ def xcodebuild(destination: str, derived_data: str | None, *args: str, capture: 
         "-scheme", SCHEME,
         "-destination", destination,
         *(["-derivedDataPath", derived_data] if derived_data else []),
+        # SwiftLint のビルドツールプラグインを、Xcode.app で一度も信頼していなくても動かせるようにする
+        "-skipPackagePluginValidation",
         # 署名は文言の抽出に関係ないので外す（手元に証明書が無くても動くように）
         "CODE_SIGNING_ALLOWED=NO",
         *args,

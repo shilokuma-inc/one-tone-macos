@@ -126,6 +126,7 @@ xcodebuild build \
     -destination "platform=iOS Simulator,id=$UDID" \
     -derivedDataPath "$DERIVED_DATA" \
     -quiet \
+    -skipPackagePluginValidation \
     CODE_SIGNING_ALLOWED=NO
 
 SETTINGS="$(xcodebuild -showBuildSettings \

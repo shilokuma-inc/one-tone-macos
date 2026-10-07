@@ -51,6 +51,7 @@ xcodebuild build \
     -destination 'platform=macOS' \
     -derivedDataPath "$DERIVED_DATA" \
     -quiet \
+    -skipPackagePluginValidation \
     CODE_SIGN_STYLE=Manual \
     CODE_SIGN_IDENTITY=- \
     PROVISIONING_PROFILE_SPECIFIER= \
