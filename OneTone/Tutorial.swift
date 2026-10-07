@@ -5,7 +5,8 @@
 
 import Foundation
 
-/// チュートリアルの 1 ページ。文言・画像・試聴の有無をデータとして持ち、表示（`TutorialView`）から切り離してテストできるようにしている
+/// チュートリアルの 1 ページ。文言・画像・試聴の有無をデータとして持ち、表示（`TutorialView`）から切り離してテストできるようにしている。
+/// 文言は表示するときに端末の言語へ訳す（`LocalizedStringResource`）。テストは訳ではなくキー（英語の原文）で比べる
 struct TutorialPage: Identifiable, Equatable {
     enum ID: String, CaseIterable {
         case welcome
@@ -16,10 +17,10 @@ struct TutorialPage: Identifiable, Equatable {
     }
 
     let id: ID
-    let title: String
-    let message: String
+    let title: LocalizedStringResource
+    let message: LocalizedStringResource
     /// 本文の下に目立たせて出す注意書き。無ければ nil
-    let caution: String?
+    let caution: LocalizedStringResource?
     /// ページで試せる音。無ければ nil
     let trial: TutorialTrial?
 
