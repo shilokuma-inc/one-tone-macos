@@ -35,7 +35,8 @@ xcodebuild test -project OneTone.xcodeproj -scheme OneTone -destination 'platfor
 1. コードには**英語の原文**を書く（`Text("Play Tone")` / `String(localized: "Silent")` / `LocalizedStringResource`）。
    UI に日本語を直接書かない（SwiftLint の `hardcoded_japanese_string` が警告する。日本語は ja の訳として持つ）
 2. `python3 Tools/sync_string_catalogs.py` でキーを catalog に取り込む（`xcodebuild` だけでは `.xcstrings` にキーが足されない。macOS と iOS の両方をビルドして取り込む）
-3. 足したキーに **12 言語すべての訳**を入れ、`state` を `translated` にする（AI 翻訳でよい。`new` / `needs_review` を残さない。sync が作った en の `state: new` も `translated` にする）
+3. 足したキーに **en 以外の 11 言語の訳**を入れ、`state` を `translated` にする（AI 翻訳でよい。`new` / `needs_review` を残さない）。
+   en は原文なので訳は要らない。sync が en に位置指定つきの値を `state: new` で書いたときは、`new` を残さない決まりに合わせて `translated` にしておく（リンターは en の state を見ないので、残っていても CI は落ちない）
 4. `python3 Tools/format_string_catalogs.py` で整形し、`python3 Tools/verify_localizations.py` で欠けが無いことを確かめる（CI の `Verify/localizations` が同じものを走らせ、1 件でもあれば落ちる）
 
 - 数と単位は文字列を連結せず、書式付きのキーにする（`"Frequency: \(value) Hz"` → キー `Frequency: %@ Hz`）。プレースホルダーは全言語で原文と同じ型・数にする
