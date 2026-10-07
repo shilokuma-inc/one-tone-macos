@@ -21,6 +21,8 @@ struct ContentView: View {
     /// 選んだテーマ。保存値が無い・読めないときは既定のテーマ
     @AppStorage(ThemeColor.storageKey) private var storedThemeColor: ThemeColor = .default
     private let isScreenshotDemo: Bool
+    /// 周波数・音量・波形の保存先。撮影モードでは読み書きしないので nil
+    private let settingsStore: ToneSettingsStore?
     #if os(iOS)
     @State private var isShowingSettings = false
     #endif
@@ -32,13 +34,16 @@ struct ContentView: View {
 
     /// - Parameter screenshotScene: スクリーンショットの撮影モードで撮る画面。渡すと、その周波数・波形・音量を初期値にし、
     ///   音を出さずに再生中の表示にする。画面を出さずに描く経路でも使えるよう、`.task` ではなく初期値で状態を作る
-    init(screenshotScene: ScreenshotDemo.Scene? = ScreenshotDemo.scene) {
-        let initialFrequency = screenshotScene?.frequency ?? FrequencyInput.defaultFrequency
-        _audioManager = StateObject(wrappedValue: AudioManager.forScreenshot(screenshotScene))
-        _frequency = State(initialValue: initialFrequency)
-        _frequencyText = State(initialValue: FrequencyInput.format(initialFrequency))
-        _volume = State(initialValue: screenshotScene?.volume ?? 0.5)
-        _waveform = State(initialValue: screenshotScene?.waveform ?? .sine)
+    /// - Parameter defaults: 周波数・音量・波形の保存先。撮影モード以外では、ここに保存した値を初期値にする
+    init(screenshotScene: ScreenshotDemo.Scene? = ScreenshotDemo.scene, defaults: UserDefaults = .standard) {
+        let store = ToneSettingsStore.forLaunch(screenshotScene: screenshotScene, defaults: defaults)
+        let initial = ToneSettings.initial(screenshotScene: screenshotScene, store: store)
+        _audioManager = StateObject(wrappedValue: AudioManager.forLaunch(screenshotScene: screenshotScene, settings: initial))
+        _frequency = State(initialValue: initial.frequency)
+        _frequencyText = State(initialValue: FrequencyInput.format(initial.frequency))
+        _volume = State(initialValue: initial.volume)
+        _waveform = State(initialValue: initial.waveform)
+        settingsStore = store
         isScreenshotDemo = screenshotScene != nil
         initialScrollTarget = screenshotScene?.scrollTarget
     }
@@ -197,16 +202,19 @@ struct ContentView: View {
         frequency = newFrequency
         frequencyText = FrequencyInput.format(newFrequency)
         audioManager.updateFrequency(newFrequency)
+        settingsStore?.save(frequency: newFrequency)
     }
     
     private func setVolume(_ newVolume: Double) {
         volume = newVolume
         audioManager.updateVolume(newVolume)
+        settingsStore?.save(volume: newVolume)
     }
     
     private func setWaveform(_ newWaveform: Waveform) {
         waveform = newWaveform
         audioManager.updateWaveform(newWaveform)
+        settingsStore?.save(waveform: newWaveform)
     }
     
     /// 範囲外や数値でない入力は反映せず、入力欄を現在の周波数に戻す

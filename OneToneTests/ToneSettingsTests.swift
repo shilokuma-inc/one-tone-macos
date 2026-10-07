@@ -1,0 +1,164 @@
+//
+//  ToneSettingsTests.swift
+//  OneToneTests
+//
+
+import XCTest
+@testable import OneTone
+
+final class ToneSettingsTests: XCTestCase {
+    private var suiteName: String!
+    private var defaults: UserDefaults!
+
+    override func setUpWithError() throws {
+        // 標準の UserDefaults を汚さないよう、テストごとに専用の suite を使う
+        suiteName = "ToneSettingsTests.\(UUID().uuidString)"
+        defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    }
+
+    override func tearDownWithError() throws {
+        defaults.removePersistentDomain(forName: suiteName)
+        defaults = nil
+        suiteName = nil
+    }
+
+    // MARK: - 既定値
+
+    func testDefaultIs440HzHalfVolumeSine() {
+        XCTAssertEqual(ToneSettings.default, ToneSettings(frequency: 440, volume: 0.5, waveform: .sine))
+    }
+
+    func testLoadWithoutStoredValuesReturnsDefault() {
+        XCTAssertEqual(ToneSettingsStore(defaults: defaults).load(), .default)
+    }
+
+    // MARK: - 保存と復元
+
+    func testSavedValuesAreRestored() {
+        let store = ToneSettingsStore(defaults: defaults)
+        store.save(frequency: 1234.5)
+        store.save(volume: 0.8)
+        store.save(waveform: .sawtooth)
+
+        // 次回の起動を想定し、別のインスタンスで読む
+        XCTAssertEqual(ToneSettingsStore(defaults: defaults).load(), ToneSettings(frequency: 1234.5, volume: 0.8, waveform: .sawtooth))
+    }
+
+    func testEveryWaveformRoundTrips() {
+        let store = ToneSettingsStore(defaults: defaults)
+        for waveform in Waveform.allCases {
+            store.save(waveform: waveform)
+            XCTAssertEqual(store.load().waveform, waveform)
+        }
+    }
+
+    func testRangeBoundsAreRestored() {
+        let store = ToneSettingsStore(defaults: defaults)
+        for (frequency, volume) in [(20.0, 0.0), (20000.0, 1.0)] {
+            store.save(frequency: frequency)
+            store.save(volume: volume)
+            XCTAssertEqual(store.load().frequency, frequency)
+            XCTAssertEqual(store.load().volume, volume)
+        }
+    }
+
+    func testValuesStoredAsIntegersAreRestored() {
+        defaults.set(1000, forKey: ToneSettingsStore.frequencyKey)
+        defaults.set(1, forKey: ToneSettingsStore.volumeKey)
+        XCTAssertEqual(ToneSettingsStore(defaults: defaults).load().frequency, 1000)
+        XCTAssertEqual(ToneSettingsStore(defaults: defaults).load().volume, 1)
+    }
+
+    // MARK: - 範囲外・壊れた値
+
+    func testOutOfRangeFrequencyFallsBackToDefault() {
+        for value in [19.9, 20000.1, 0, -440, .nan, .infinity] {
+            defaults.set(value, forKey: ToneSettingsStore.frequencyKey)
+            XCTAssertEqual(ToneSettingsStore(defaults: defaults).load().frequency, ToneSettings.default.frequency, "\(value)")
+        }
+    }
+
+    func testOutOfRangeVolumeFallsBackToDefault() {
+        for value in [-0.01, 1.01, 100, .nan] {
+            defaults.set(value, forKey: ToneSettingsStore.volumeKey)
+            XCTAssertEqual(ToneSettingsStore(defaults: defaults).load().volume, ToneSettings.default.volume, "\(value)")
+        }
+    }
+
+    func testUnknownWaveformFallsBackToDefault() {
+        for value in [4.0, -1, 0.5, 256] {
+            defaults.set(value, forKey: ToneSettingsStore.waveformKey)
+            XCTAssertEqual(ToneSettingsStore(defaults: defaults).load().waveform, ToneSettings.default.waveform, "\(value)")
+        }
+    }
+
+    func testValuesOfWrongTypeFallBackToDefault() {
+        // 文字列は `double(forKey:)` だと数値に変換されてしまうが、壊れた値として扱う
+        for value in ["1000", "abc", Data([1, 2]), [440], ["frequency": 440]] as [Any] {
+            defaults.set(value, forKey: ToneSettingsStore.frequencyKey)
+            defaults.set(value, forKey: ToneSettingsStore.volumeKey)
+            defaults.set(value, forKey: ToneSettingsStore.waveformKey)
+            XCTAssertEqual(ToneSettingsStore(defaults: defaults).load(), .default, "\(value)")
+        }
+        defaults.set(true, forKey: ToneSettingsStore.volumeKey)
+        defaults.set(true, forKey: ToneSettingsStore.waveformKey)
+        XCTAssertEqual(ToneSettingsStore(defaults: defaults).load(), .default)
+    }
+
+    func testOnlyBrokenItemFallsBackToDefault() {
+        let store = ToneSettingsStore(defaults: defaults)
+        store.save(frequency: 1000)
+        store.save(waveform: .square)
+        defaults.set("loud", forKey: ToneSettingsStore.volumeKey)
+        XCTAssertEqual(store.load(), ToneSettings(frequency: 1000, volume: 0.5, waveform: .square))
+    }
+
+    // MARK: - 撮影モード
+
+    func testScreenshotModeDoesNotUseStore() {
+        for scene in ScreenshotDemo.Scene.allCases {
+            XCTAssertNil(ToneSettingsStore.forLaunch(screenshotScene: scene, defaults: defaults), "\(scene)")
+        }
+        XCTAssertNotNil(ToneSettingsStore.forLaunch(screenshotScene: nil, defaults: defaults))
+    }
+
+    func testScreenshotModeIgnoresStoredValues() {
+        let store = ToneSettingsStore(defaults: defaults)
+        store.save(frequency: 15000)
+        store.save(volume: 1)
+        store.save(waveform: .sawtooth)
+
+        for scene in ScreenshotDemo.Scene.allCases {
+            let initial = ToneSettings.initial(screenshotScene: scene, store: store)
+            XCTAssertEqual(initial, ToneSettings(frequency: scene.frequency, volume: scene.volume, waveform: scene.waveform), "\(scene)")
+        }
+    }
+
+    func testCreatingScreenshotContentViewDoesNotWriteDefaults() {
+        for scene in ScreenshotDemo.Scene.allCases {
+            _ = ContentView(screenshotScene: scene, defaults: defaults)
+        }
+        XCTAssertNil(defaults.object(forKey: ToneSettingsStore.frequencyKey))
+        XCTAssertNil(defaults.object(forKey: ToneSettingsStore.volumeKey))
+        XCTAssertNil(defaults.object(forKey: ToneSettingsStore.waveformKey))
+    }
+
+    func testInitialSettingsOutsideScreenshotModeComeFromStore() {
+        let store = ToneSettingsStore(defaults: defaults)
+        store.save(frequency: 100)
+        store.save(volume: 0.1)
+        store.save(waveform: .triangle)
+        XCTAssertEqual(ToneSettings.initial(screenshotScene: nil, store: store), ToneSettings(frequency: 100, volume: 0.1, waveform: .triangle))
+    }
+
+    // MARK: - AudioManager への反映
+
+    func testApplySetsAllValuesWithoutStartingPlayback() {
+        let manager = AudioManager(startsEngine: false)
+        manager.apply(ToneSettings(frequency: 1000, volume: 0.2, waveform: .square))
+        XCTAssertEqual(manager.currentFrequency, 1000)
+        XCTAssertEqual(manager.currentVolume, 0.2)
+        XCTAssertEqual(manager.currentWaveform, .square)
+        XCTAssertFalse(manager.isPlaying)
+    }
+}

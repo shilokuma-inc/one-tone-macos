@@ -39,9 +39,11 @@
 		4F6D89545B41775C2458796C /* DeckPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F8FA390292E0DE907B7E48 /* DeckPanel.swift */; };
 		5A1C3E7D2F0B4A6E9C8D1B20 /* ScreenshotDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1C3E7D2F0B4A6E9C8D1B21 /* ScreenshotDemo.swift */; };
 		7B2D4F6A1C3E5A7B9D0F1A01 /* Tutorial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A02 /* Tutorial.swift */; };
+		5C1E7A2B3D4F6A8B9C0D1E01 /* ToneSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C1E7A2B3D4F6A8B9C0D1E02 /* ToneSettings.swift */; };
 		7B2D4F6A1C3E5A7B9D0F1A05 /* TutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A06 /* TutorialView.swift */; };
 		7B2D4F6A1C3E5A7B9D0F1A07 /* TutorialButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A08 /* TutorialButton.swift */; };
 		7B2D4F6A1C3E5A7B9D0F1A03 /* TutorialTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A04 /* TutorialTests.swift */; };
+		5C1E7A2B3D4F6A8B9C0D1E03 /* ToneSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C1E7A2B3D4F6A8B9C0D1E04 /* ToneSettingsTests.swift */; };
 		7B2D4F6A1C3E5A7B9D0F1A09 /* TutorialTrialPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A0A /* TutorialTrialPlayer.swift */; };
 		7B2D4F6A1C3E5A7B9D0F1A0B /* TutorialTrialPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2D4F6A1C3E5A7B9D0F1A0C /* TutorialTrialPlayerTests.swift */; };
 		5A1C3E7D2F0B4A6E9C8D1B22 /* ScreenshotDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1C3E7D2F0B4A6E9C8D1B23 /* ScreenshotDemoTests.swift */; };
@@ -81,9 +83,11 @@
 		A45A8FADF45C3FC1276BA4C4 /* TitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleView.swift; sourceTree = "<group>"; };
 		5A1C3E7D2F0B4A6E9C8D1B21 /* ScreenshotDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDemo.swift; sourceTree = "<group>"; };
 		7B2D4F6A1C3E5A7B9D0F1A02 /* Tutorial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tutorial.swift; sourceTree = "<group>"; };
+		5C1E7A2B3D4F6A8B9C0D1E02 /* ToneSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToneSettings.swift; sourceTree = "<group>"; };
 		7B2D4F6A1C3E5A7B9D0F1A06 /* TutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialView.swift; sourceTree = "<group>"; };
 		7B2D4F6A1C3E5A7B9D0F1A08 /* TutorialButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialButton.swift; sourceTree = "<group>"; };
 		7B2D4F6A1C3E5A7B9D0F1A04 /* TutorialTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialTests.swift; sourceTree = "<group>"; };
+		5C1E7A2B3D4F6A8B9C0D1E04 /* ToneSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToneSettingsTests.swift; sourceTree = "<group>"; };
 		7B2D4F6A1C3E5A7B9D0F1A0A /* TutorialTrialPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialTrialPlayer.swift; sourceTree = "<group>"; };
 		7B2D4F6A1C3E5A7B9D0F1A0C /* TutorialTrialPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialTrialPlayerTests.swift; sourceTree = "<group>"; };
 		5A1C3E7D2F0B4A6E9C8D1B23 /* ScreenshotDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDemoTests.swift; sourceTree = "<group>"; };
@@ -176,6 +180,7 @@
 				5A1C3E7D2F0B4A6E9C8D1B21 /* ScreenshotDemo.swift */,
 				7E2A91C4D3B85F0A6C1E4D05 /* SettingsView.swift */,
 				7B2D4F6A1C3E5A7B9D0F1A02 /* Tutorial.swift */,
+				5C1E7A2B3D4F6A8B9C0D1E02 /* ToneSettings.swift */,
 				7B2D4F6A1C3E5A7B9D0F1A06 /* TutorialView.swift */,
 				7B2D4F6A1C3E5A7B9D0F1A0A /* TutorialTrialPlayer.swift */,
 				7B2D4F6A1C3E5A7B9D0F1A08 /* TutorialButton.swift */,
@@ -208,6 +213,7 @@
 				7E2A91C4D3B85F0A6C1E4D03 /* ThemeColorTests.swift */,
 				5A1C3E7D2F0B4A6E9C8D1B23 /* ScreenshotDemoTests.swift */,
 				7B2D4F6A1C3E5A7B9D0F1A04 /* TutorialTests.swift */,
+				5C1E7A2B3D4F6A8B9C0D1E04 /* ToneSettingsTests.swift */,
 				7B2D4F6A1C3E5A7B9D0F1A0C /* TutorialTrialPlayerTests.swift */,
 				D0973AB3BCFCB499DB02709E /* AudioOutputTapTests.swift */,
 				CCFC38CB04B067663CAF98D8 /* SampleRingBufferTests.swift */,
@@ -388,6 +394,7 @@
 				7BB99970DCC99ACA4767B00E /* TitleView.swift in Sources */,
 				5A1C3E7D2F0B4A6E9C8D1B20 /* ScreenshotDemo.swift in Sources */,
 				7B2D4F6A1C3E5A7B9D0F1A01 /* Tutorial.swift in Sources */,
+				5C1E7A2B3D4F6A8B9C0D1E01 /* ToneSettings.swift in Sources */,
 				7B2D4F6A1C3E5A7B9D0F1A05 /* TutorialView.swift in Sources */,
 				7B2D4F6A1C3E5A7B9D0F1A09 /* TutorialTrialPlayer.swift in Sources */,
 				7B2D4F6A1C3E5A7B9D0F1A07 /* TutorialButton.swift in Sources */,
@@ -408,6 +415,7 @@
 				7E2A91C4D3B85F0A6C1E4D04 /* ThemeColorTests.swift in Sources */,
 				5A1C3E7D2F0B4A6E9C8D1B22 /* ScreenshotDemoTests.swift in Sources */,
 				7B2D4F6A1C3E5A7B9D0F1A03 /* TutorialTests.swift in Sources */,
+				5C1E7A2B3D4F6A8B9C0D1E03 /* ToneSettingsTests.swift in Sources */,
 				7B2D4F6A1C3E5A7B9D0F1A0B /* TutorialTrialPlayerTests.swift in Sources */,
 				407D703CBB65FE821F124499 /* AudioOutputTapTests.swift in Sources */,
 				D1BD1C8BB4E363C1197FE6A7 /* SampleRingBufferTests.swift in Sources */,
