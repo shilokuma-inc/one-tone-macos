@@ -37,7 +37,7 @@ struct TitleView: View {
     }
 
     private func title(hue: Double) -> some View {
-        Text("One Tone")
+        Text(verbatim: "One Tone")
             .foregroundStyle(Theme.textPrimary)
             .font(.custom("Helvetica Neue", size: 60))
             .fontWeight(.bold)
@@ -51,7 +51,7 @@ struct TitleView: View {
                     endPoint: .trailing
                 )
                 .mask(
-                    Text("One Tone")
+                    Text(verbatim: "One Tone")
                         .lineLimit(1)
                         .minimumScaleFactor(0.5)
                 )

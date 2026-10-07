@@ -25,7 +25,7 @@ struct LevelMeterView: View {
             let litCount = LevelMeter.litSegmentCount(decibels: decibels)
             VStack(spacing: 6) {
                 HStack {
-                    Text("LEVEL")
+                    Text(verbatim: "LEVEL")
                         .font(.caption.weight(.semibold))
                         .tracking(1.5)
                         .foregroundStyle(Theme.textSecondary)
@@ -45,7 +45,7 @@ struct LevelMeterView: View {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Level")
-            .accessibilityValue(isPlaying ? LevelMeter.label(decibels: decibels) : "Silent")
+            .accessibilityValue(isPlaying ? LevelMeter.label(decibels: decibels) : String(localized: "Silent"))
         }
         .frame(maxWidth: 440)
         .padding(.horizontal)
@@ -83,10 +83,10 @@ enum LevelMeter {
         return decibels > warningDecibels ? Theme.accentSecondary : accent
     }
 
-    /// 表示用の dB 表記（1dB 単位）。範囲の下端より小さいときは「-inf dB」
+    /// 表示用の dB 表記（1dB 単位）。範囲の下端より小さいときは「-inf dB」。単位の付け方は言語ごとの書式（catalog）に任せる
     static func label(decibels: Double) -> String {
-        guard decibels > floorDecibels else { return "-inf dB" }
-        return "\(Int(decibels.rounded())) dB"
+        let value = decibels > floorDecibels ? String(Int(decibels.rounded())) : "-inf"
+        return String(localized: "\(value) dB")
     }
 }
 
