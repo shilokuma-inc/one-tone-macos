@@ -43,6 +43,12 @@ CONFIG="python3 Tools/app_store_config.py"
 
 # 配布ビルド（Upload ワークフロー）と同じ ad-hoc 署名にするが、App Sandbox は外す。
 # サンドボックス内からは指定した保存先に PNG を書けないため。撮影用のビルドだけで、配布ビルドには影響しない
+# SwiftLint のビルドツールプラグインの信頼確認は、Xcode.app で一度信頼すれば要らない。
+# 信頼確認を飛ばすのは、自分のブランチなど中身を確かめたチェックアウトで SKIP_PACKAGE_PLUGIN_VALIDATION=1 を付けたときだけ
+PLUGIN_OPTIONS=()
+if [ "${SKIP_PACKAGE_PLUGIN_VALIDATION:-0}" = 1 ]; then
+    PLUGIN_OPTIONS+=(-skipPackagePluginValidation)
+fi
 echo "$SCHEME を macOS 向けにビルドします（撮影用・サンドボックス無し）"
 xcodebuild build \
     -project "$PROJECT" \
@@ -51,6 +57,7 @@ xcodebuild build \
     -destination 'platform=macOS' \
     -derivedDataPath "$DERIVED_DATA" \
     -quiet \
+    ${PLUGIN_OPTIONS[@]+"${PLUGIN_OPTIONS[@]}"} \
     CODE_SIGN_STYLE=Manual \
     CODE_SIGN_IDENTITY=- \
     PROVISIONING_PROFILE_SPECIFIER= \
