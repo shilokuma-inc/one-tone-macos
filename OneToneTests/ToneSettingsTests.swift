@@ -130,7 +130,9 @@ final class ToneSettingsTests: XCTestCase {
 
         for scene in ScreenshotDemo.Scene.allCases {
             let initial = ToneSettings.initial(screenshotScene: scene, store: store)
-            XCTAssertEqual(initial, ToneSettings(frequency: scene.frequency, volume: scene.volume, waveform: scene.waveform), "\(scene)")
+            XCTAssertEqual(initial.settings, ToneSettings(frequency: scene.frequency, volume: scene.volume, waveform: scene.waveform), "\(scene)")
+            // 撮影モードでは保存値が上限を超えていても制限せず、ダイアログも出さない
+            XCTAssertFalse(initial.volumeWasCapped, "\(scene)")
         }
     }
 
@@ -148,7 +150,79 @@ final class ToneSettingsTests: XCTestCase {
         store.save(frequency: 100)
         store.save(volume: 0.1)
         store.save(waveform: .triangle)
-        XCTAssertEqual(ToneSettings.initial(screenshotScene: nil, store: store), ToneSettings(frequency: 100, volume: 0.1, waveform: .triangle))
+        XCTAssertEqual(
+            ToneSettings.initial(screenshotScene: nil, store: store),
+            ToneSettingsRestoration(settings: ToneSettings(frequency: 100, volume: 0.1, waveform: .triangle), volumeWasCapped: false)
+        )
+    }
+
+    // MARK: - 起動時の音量の上限
+
+    func testVolumeAtOrBelowLimitIsRestoredAsIs() {
+        let store = ToneSettingsStore(defaults: defaults)
+        for volume in [0.0, 0.1, 0.2] {
+            store.save(volume: volume)
+            let restoration = store.restore()
+            XCTAssertEqual(restoration.settings.volume, volume)
+            XCTAssertFalse(restoration.volumeWasCapped, "\(volume)")
+        }
+    }
+
+    func testVolumeAboveLimitIsLoweredToLimit() {
+        let store = ToneSettingsStore(defaults: defaults)
+        for volume in [(0.2).nextUp, 0.2001, 0.5, 1.0] {
+            store.save(volume: volume)
+            let restoration = store.restore()
+            XCTAssertEqual(restoration.settings.volume, 0.2, "\(volume)")
+            XCTAssertTrue(restoration.volumeWasCapped, "\(volume)")
+        }
+    }
+
+    func testLoweredVolumeIsSavedAgain() {
+        let store = ToneSettingsStore(defaults: defaults)
+        store.save(volume: 1)
+        _ = store.restore()
+        XCTAssertEqual(store.load().volume, 0.2)
+        // 下げた値を保存し直したので、次の起動ではダイアログを出さない
+        XCTAssertFalse(store.restore().volumeWasCapped)
+    }
+
+    func testCappingKeepsFrequencyAndWaveform() {
+        let store = ToneSettingsStore(defaults: defaults)
+        store.save(frequency: 1000)
+        store.save(volume: 0.9)
+        store.save(waveform: .square)
+        XCTAssertEqual(store.restore().settings, ToneSettings(frequency: 1000, volume: 0.2, waveform: .square))
+    }
+
+    func testDefaultVolumeWithoutSavedValueIsNotCapped() {
+        // 既定値（50%）は保存値ではないので下げない（初回起動でダイアログを出さない）
+        let restoration = ToneSettingsStore(defaults: defaults).restore()
+        XCTAssertEqual(restoration.settings, .default)
+        XCTAssertFalse(restoration.volumeWasCapped)
+        XCTAssertNil(defaults.object(forKey: ToneSettingsStore.volumeKey))
+    }
+
+    func testBrokenSavedVolumeFallsBackToDefaultWithoutCapping() {
+        defaults.set("loud", forKey: ToneSettingsStore.volumeKey)
+        let restoration = ToneSettingsStore(defaults: defaults).restore()
+        XCTAssertEqual(restoration.settings.volume, ToneSettings.default.volume)
+        XCTAssertFalse(restoration.volumeWasCapped)
+    }
+
+    func testInitialSettingsOutsideScreenshotModeAreCapped() {
+        let store = ToneSettingsStore(defaults: defaults)
+        store.save(volume: 0.8)
+        let first = ToneSettings.initial(screenshotScene: nil, store: store)
+        XCTAssertEqual(first.settings.volume, 0.2)
+        XCTAssertTrue(first.volumeWasCapped)
+        XCTAssertFalse(ToneSettings.initial(screenshotScene: nil, store: store).volumeWasCapped, "保存し直したので 2 回目は下げない")
+    }
+
+    func testVolumeCapNoticeUsesFormattedKey() {
+        XCTAssertEqual(VolumeCapNotice.title.key, "Volume Lowered")
+        XCTAssertEqual(VolumeCapNotice.message.key, "To prevent a sudden loud sound, the volume was lowered to %lld%%.")
+        XCTAssertEqual(VolumeCapNotice.percent, 20)
     }
 
     // MARK: - AudioManager への反映
