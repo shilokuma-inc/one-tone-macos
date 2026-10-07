@@ -12,6 +12,7 @@
 - `NSHostingView` の描画はウィンドウに載せて RunLoop を 1 秒ほど回してから。載せずに描くと SwiftUI がレイアウトを進めず空になる（2026-10-05）
 - App Sandbox 付きのビルドは指定した保存先に PNG を書けない。撮影用のビルドだけ `CODE_SIGN_ENTITLEMENTS= ENABLE_APP_SANDBOX=NO` で外す（配布ビルドには影響しない）（2026-10-05）
 - 参考（ウィンドウを撮る方式を試したときの癖）: App Sandbox 付きの実行ファイルを直接起動するとウィンドウが出ない（`open -n -a` なら出る）。`-ApplePersistenceIgnoreState YES` を付けると `WindowGroup` がウィンドウを出さない。`open` で起動したプロセスのパスは `/private/var/…` に解決される。起動直後のウィンドウ番号は数秒で無効になることがある。起動時に最初の `TextField` へフォーカスが当たり数字が選択表示になる（2026-10-05）
+- 他のビルドと並走して Mac が重いと、1 枚を描き終えるまでの既定の待ち時間（`RENDER_TIMEOUT=60` 秒）を超えて止まることがある。そのときは `RENDER_TIMEOUT=240` などを付け、`Tools/capture_tutorial_screenshots.sh mac <失敗した言語>` のように言語を絞って撮り直す（2026-10-07）
 
 ## iOS のスクリーンショット撮影（Tools/capture_screenshots.sh）
 
