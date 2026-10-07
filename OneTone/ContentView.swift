@@ -243,12 +243,12 @@ enum FrequencyInput {
         format(preset) == format(frequency)
     }
 
-    /// プリセットボタンの表記。1kHz 以上は kHz で表す
+    /// プリセットボタンの表記。1kHz 以上は kHz で表す。単位の付け方は言語ごとの書式（catalog）に任せる
     static func presetLabel(_ frequency: Double) -> String {
         if frequency >= 1000 {
-            return "\(format(frequency / 1000)) kHz"
+            return String(localized: "\(format(frequency / 1000)) kHz")
         }
-        return "\(format(frequency)) Hz"
+        return String(localized: "\(format(frequency)) Hz")
     }
 }
 
