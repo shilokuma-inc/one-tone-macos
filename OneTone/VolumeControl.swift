@@ -20,7 +20,7 @@ struct VolumeControl: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Text("VOLUME")
+            Text(verbatim: "VOLUME")
                 .font(.caption.weight(.semibold))
                 .tracking(1.5)
                 .foregroundStyle(Theme.textSecondary)

@@ -25,7 +25,7 @@ struct LevelMeterView: View {
             let litCount = LevelMeter.litSegmentCount(decibels: decibels)
             VStack(spacing: 6) {
                 HStack {
-                    Text("LEVEL")
+                    Text(verbatim: "LEVEL")
                         .font(.caption.weight(.semibold))
                         .tracking(1.5)
                         .foregroundStyle(Theme.textSecondary)
@@ -45,7 +45,7 @@ struct LevelMeterView: View {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Level")
-            .accessibilityValue(isPlaying ? LevelMeter.label(decibels: decibels) : "Silent")
+            .accessibilityValue(isPlaying ? LevelMeter.label(decibels: decibels) : String(localized: "Silent"))
         }
         .frame(maxWidth: 440)
         .padding(.horizontal)

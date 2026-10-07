@@ -248,6 +248,7 @@ enum Waveform: UInt8, CaseIterable, Identifiable {
 
     var id: Self { self }
 
+    /// 波形名。VoiceOver を含め、全言語で英語のまま出す（訳さない）ので `String` のままにしている
     var displayName: String {
         switch self {
         case .sine: return "Sine"

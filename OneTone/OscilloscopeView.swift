@@ -43,7 +43,7 @@ struct OscilloscopeView: View {
         .padding(.horizontal)
         .accessibilityElement()
         .accessibilityLabel("Oscilloscope")
-        .accessibilityValue(isPlaying ? "Showing output waveform" : "Silent")
+        .accessibilityValue(isPlaying ? Text("Showing output waveform") : Text("Silent"))
     }
 
     /// 機材の画面らしい目盛り（中央の横線と縦の区切り）
