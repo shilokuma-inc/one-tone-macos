@@ -25,6 +25,11 @@
 - SwiftLint はビルドツールプラグイン（SwiftLintPlugins）で入れているので、コマンドラインの `xcodebuild` は、Xcode.app でプラグインを一度信頼していないと信頼確認で止まる。`-skipPackagePluginValidation` で飛ばせるが、未確認の PR をチェックアウトしたときに付けるとそのプラグインを確認なしで動かすことになるので、手元のスクリプト（`capture_*.sh` / `sync_string_catalogs.py`）は `SKIP_PACKAGE_PLUGIN_VALIDATION=1` を付けたときだけ付ける。CI は `defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidatation -bool YES`。DerivedData の `SourcePackages/artifacts` にある `swiftlint` を単体で動かすときは `DEVELOPER_DIR` を Xcode.app に向けないと sourcekitdInProc が読めずに落ちる（2026-10-07）
 - asset catalog の画像セットは、`locale` の無い画像（既定）と `"locale" : "ja"` などを付けた画像を同じ Contents.json に並べ、`"properties" : { "localizable" : true }` を付けると言語ごとに出し分けられる（macOS / iOS とも actool が受け付け、`assetutil --info` で Localization ごとの rendition になる）。対応外の言語の端末では既定の画像が出る（2026-10-07）
 
+## ローカライズ
+
+- `xcstringstool sync` は、引数が 2 つ以上の文言（`Page %lld of %lld` など）を取り込むと、en に位置指定つきの値（`Page %1$lld of %2$lld`）を `state: new` で書く。訳を入れたら en の state も `translated` にする（2026-10-07）
+- `LocalizedStringResource` にした文言をテストで比べるときは、`String(localized:)` ではなく `.key`（英語の原文）で比べると、テストを動かす Mac の言語に左右されない（2026-10-07）
+
 ## GitHub Actions
 
 - `workflow_dispatch` だけのワークフローは、既定ブランチに無いと `gh workflow run` / REST API から起動できない（404）。一度でも実行されれば登録されて `--ref <ブランチ>` で起動できるので、新規に足すときは一時的に PR ブランチへの `push` トリガーを付けて 1 回動かし、登録後に外す（2026-10-05）
