@@ -377,7 +377,16 @@ def main() -> int:
     args = parser.parse_args()
 
     config = load_config()
-    enforced = args.languages.split(",") if args.languages else config["enforced"]
+    if args.languages:
+        # 空の要素や対応言語に無いコードは、全キーが「訳がありません」になって原因が分かりにくいので先に弾く
+        enforced = [language.strip() for language in args.languages.split(",")]
+        if any(not language for language in enforced):
+            sys.exit(f"--languages に空の要素があります: {args.languages!r}")
+        unknown = [language for language in enforced if language not in config["languages"]]
+        if unknown:
+            sys.exit(f"--languages に対応言語に無いコードがあります: {unknown!r}")
+    else:
+        enforced = config["enforced"]
 
     findings = verify_config(config)
     files = catalogs()
