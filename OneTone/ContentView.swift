@@ -33,7 +33,7 @@ struct ContentView: View {
     /// - Parameter screenshotScene: スクリーンショットの撮影モードで撮る画面。渡すと、その周波数・波形・音量を初期値にし、
     ///   音を出さずに再生中の表示にする。画面を出さずに描く経路でも使えるよう、`.task` ではなく初期値で状態を作る
     init(screenshotScene: ScreenshotDemo.Scene? = ScreenshotDemo.scene) {
-        let initialFrequency = screenshotScene?.frequency ?? 20.0
+        let initialFrequency = screenshotScene?.frequency ?? FrequencyInput.defaultFrequency
         _audioManager = StateObject(wrappedValue: AudioManager.forScreenshot(screenshotScene))
         _frequency = State(initialValue: initialFrequency)
         _frequencyText = State(initialValue: FrequencyInput.format(initialFrequency))
@@ -223,6 +223,8 @@ struct ContentView: View {
 enum FrequencyInput {
     /// 可聴域に合わせた入力可能な範囲（スライダーと同じ）
     static let range: ClosedRange<Double> = 20...20000
+    /// 起動直後の周波数。聞き取りやすい基準音（A4）にする
+    static let defaultFrequency: Double = 440
     static let presets: [Double] = [100, 440, 1000, 10000]
 
     /// 入力文字列を周波数に変換する。数値でない・範囲外の場合は nil
