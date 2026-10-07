@@ -9,6 +9,7 @@ GitHub Actions のワークフローから使う。設定は 2 つの JSON が�
 シェルから使うときはタブ区切りで出す。
 
     python3 Tools/app_store_config.py languages [ja]      # 言語ごとの撮影・反映の設定
+    python3 Tools/app_store_config.py app-languages [ja]  # アプリの対応言語ごとの撮影の設定（チュートリアル画像用）
     python3 Tools/app_store_config.py scenes              # 撮る画面
     python3 Tools/app_store_config.py devices APP_IPHONE_67
     python3 Tools/app_store_config.py sizes APP_IPHONE_67
@@ -28,6 +29,7 @@ from typing import NamedTuple
 
 ROOT = Path(__file__).resolve().parent.parent
 LANGUAGES_FILE = ROOT / "AppStore" / "languages.json"
+SUPPORTED_LANGUAGES_FILE = ROOT / "Localization" / "supported-languages.json"
 SCREENSHOTS_FILE = ROOT / "AppStore" / "screenshots.json"
 PROJECT_FILE = ROOT / "OneTone.xcodeproj" / "project.pbxproj"
 
@@ -82,6 +84,37 @@ def languages(selected: list[str] | None = None) -> list[Language]:
         )
         for language in targets
     ]
+
+
+def app_languages(selected: list[str] | None = None) -> list[Language]:
+    """アプリが対応する言語（`Localization/supported-languages.json`）ごとの撮影の設定を返す。
+
+    App Store に載せる言語（`AppStore/languages.json`）とは別に、アプリの UI を訳した全言語を撮るときに使う
+    （チュートリアルの画像）。`languages()` と同じ形で返し、撮影スクリプトはどちらも同じように読める。
+    """
+    config = json.loads(SUPPORTED_LANGUAGES_FILE.read_text(encoding="utf-8"))
+    known = config["languages"]
+    targets = known if selected is None else selected
+
+    unknown = [language for language in targets if language not in known]
+    if unknown:
+        raise SystemExit(
+            f"{SUPPORTED_LANGUAGES_FILE.name} に無い言語: {', '.join(unknown)}\n"
+            f"指定できるのは: {', '.join(known)}"
+        )
+    result = []
+    for language in targets:
+        entry = config["appStore"][language]
+        test_language = entry["testLanguage"]
+        # -AppleLocale は「言語_地域」。pt-BR のように言語コードが地域を含むときは地域を重ねない
+        base = test_language.split("-")[0] if test_language.endswith(f"-{entry['testRegion']}") else test_language
+        result.append(Language(
+            language=language,
+            apple_language=test_language,
+            apple_locale=f"{base}_{entry['testRegion']}",
+            store_locale=entry["storeLocale"],
+        ))
+    return result
 
 
 def _screenshots_config() -> dict:
@@ -170,13 +203,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
         "command",
-        choices=("languages", "scenes", "devices", "sizes", "platform", "display-types", "bundle-id"),
+        choices=("languages", "app-languages", "scenes", "devices", "sizes", "platform", "display-types", "bundle-id"),
     )
     parser.add_argument("argument", nargs="?", default=None)
     args = parser.parse_args()
 
-    if args.command == "languages":
-        for entry in languages(parse_list(args.argument)):
+    if args.command in ("languages", "app-languages"):
+        read = languages if args.command == "languages" else app_languages
+        for entry in read(parse_list(args.argument)):
             print("\t".join(entry))
     elif args.command == "scenes":
         for entry in scenes():
