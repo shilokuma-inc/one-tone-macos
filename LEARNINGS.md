@@ -21,6 +21,7 @@
 
 - 手元に「Mac Development」の署名証明書が無いと、macOS 向けの `xcodebuild build` / `test` が署名で失敗する（iOS Simulator は通る）。CI と同じく build は `CODE_SIGNING_ALLOWED=NO`、macOS の `test` は `CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=` のアドホック署名で通る。`platform=macOS` だけだと arm64 / x86_64 の 2 つに一致するので `arch=arm64` も付ける（2026-10-06）
 - `xcodebuild` でビルドしても `.xcstrings` にはキーが足されない（Xcode.app でのビルド時だけ自動で足される）。コマンドラインでは `python3 Tools/sync_string_catalogs.py` でビルド成果物の `.stringsdata` を `xcstringstool sync` に渡して取り込む。`#if os(...)` の片方にしか無い文言が stale にされないよう、macOS と iOS の両方の `.stringsdata` をまとめて渡す（2026-10-07）
+- asset catalog の画像セットは、`locale` の無い画像（既定）と `"locale" : "ja"` などを付けた画像を同じ Contents.json に並べ、`"properties" : { "localizable" : true }` を付けると言語ごとに出し分けられる（macOS / iOS とも actool が受け付け、`assetutil --info` で Localization ごとの rendition になる）。対応外の言語の端末では既定の画像が出る（2026-10-07）
 
 ## GitHub Actions
 
