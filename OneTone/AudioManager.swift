@@ -20,7 +20,7 @@ class AudioManager: ObservableObject {
     private let sourceNode: AVAudioSourceNode
     /// Play / Stop ボタンの活性制御に使うため、UI から購読できるようにする
     @Published private(set) var isPlaying: Bool = false
-    var currentFrequency: Double = 20.0
+    var currentFrequency: Double = FrequencyInput.defaultFrequency
     /// 0...1。以前の固定振幅と同じ 0.5 を初期値にする
     var currentVolume: Double = 0.5
     var currentWaveform: Waveform = .sine
