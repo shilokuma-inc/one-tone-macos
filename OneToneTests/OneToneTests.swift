@@ -350,6 +350,16 @@ final class OneToneTests: XCTestCase {
     }
     // MARK: - FrequencyInput
 
+    func testDefaultFrequencyIs440AndInRange() {
+        XCTAssertEqual(FrequencyInput.defaultFrequency, 440)
+        XCTAssertTrue(FrequencyInput.range.contains(FrequencyInput.defaultFrequency))
+    }
+
+    func testAudioManagerStartsAtDefaultFrequency() {
+        let manager = AudioManager(startsEngine: false)
+        XCTAssertEqual(manager.currentFrequency, FrequencyInput.defaultFrequency)
+    }
+
     func testFrequencyInputAcceptsValuesInRange() {
         XCTAssertEqual(FrequencyInput.parse("440"), 440)
         XCTAssertEqual(FrequencyInput.parse("20"), 20)

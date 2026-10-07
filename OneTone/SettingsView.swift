@@ -16,6 +16,9 @@ struct SettingsView: View {
                 DeckPanel(title: "THEME COLOR") {
                     ThemeColorPicker(selection: $themeColor)
                 }
+                DeckPanel(title: "RESET") {
+                    ToneSettingsResetButton()
+                }
                 #if os(iOS)
                 // アイコンはテーマとは別に選ぶ（テーマを変えても連動しない）。macOS のアイコンは変えない
                 DeckPanel(title: "APP ICON") {
@@ -27,11 +30,38 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity)
         }
         #if os(macOS)
-        .frame(width: 420, height: 320)
+        .frame(width: 420, height: 440)
         #endif
         .themedScreen()
         // 設定画面自体も選んだテーマの差し色で表示する
         .environment(\.themeColor, themeColor)
+    }
+}
+
+/// 周波数・音量・波形を既定値（440Hz / 50% / Sine）に戻すボタン。取り消せないので確認してから戻す。
+/// 開いているメイン画面へは `ToneSettingsStore.didResetNotification` で伝える（設定画面からはメイン画面の状態に直接届かないため）
+struct ToneSettingsResetButton: View {
+    var store = ToneSettingsStore()
+    @State private var isConfirming = false
+
+    var body: some View {
+        Button {
+            isConfirming = true
+        } label: {
+            Label("Reset to Defaults", systemImage: "arrow.counterclockwise")
+                .font(.system(.callout, design: .rounded).weight(.medium))
+                .foregroundStyle(Theme.textPrimary)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(WaveformButtonStyle(isSelected: false))
+        .padding(4)
+        .alert(Text(ToneSettingsResetConfirmation.title), isPresented: $isConfirming) {
+            Button("Reset", role: .destructive) { store.reset() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(ToneSettingsResetConfirmation.message)
+        }
     }
 }
 

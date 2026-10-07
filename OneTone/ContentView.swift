@@ -21,24 +21,34 @@ struct ContentView: View {
     /// 選んだテーマ。保存値が無い・読めないときは既定のテーマ
     @AppStorage(ThemeColor.storageKey) private var storedThemeColor: ThemeColor = .default
     private let isScreenshotDemo: Bool
+    /// 周波数・音量・波形の保存先。撮影モードでは読み書きしないので nil
+    private let settingsStore: ToneSettingsStore?
     #if os(iOS)
     @State private var isShowingSettings = false
     #endif
     /// チュートリアルを閉じたことがあるか。Skip / 完了 / 閉じる のどれでも立てる
     @AppStorage(Tutorial.hasSeenKey) private var hasSeenTutorial = false
     @State private var isShowingTutorial = false
+    /// 起動時に保存された音量を上限まで下げたので、まだ知らせていない。チュートリアルと重なるときは閉じてから出す
+    @State private var hasPendingVolumeCapNotice: Bool
+    @State private var isShowingVolumeCapNotice = false
     /// 撮影モードで、開いた直後に見える位置まで送る部品
     private let initialScrollTarget: Section?
 
     /// - Parameter screenshotScene: スクリーンショットの撮影モードで撮る画面。渡すと、その周波数・波形・音量を初期値にし、
     ///   音を出さずに再生中の表示にする。画面を出さずに描く経路でも使えるよう、`.task` ではなく初期値で状態を作る
-    init(screenshotScene: ScreenshotDemo.Scene? = ScreenshotDemo.scene) {
-        let initialFrequency = screenshotScene?.frequency ?? 20.0
-        _audioManager = StateObject(wrappedValue: AudioManager.forScreenshot(screenshotScene))
-        _frequency = State(initialValue: initialFrequency)
-        _frequencyText = State(initialValue: FrequencyInput.format(initialFrequency))
-        _volume = State(initialValue: screenshotScene?.volume ?? 0.5)
-        _waveform = State(initialValue: screenshotScene?.waveform ?? .sine)
+    /// - Parameter defaults: 周波数・音量・波形の保存先。撮影モード以外では、ここに保存した値を初期値にする
+    init(screenshotScene: ScreenshotDemo.Scene? = ScreenshotDemo.scene, defaults: UserDefaults = .standard) {
+        let store = ToneSettingsStore.forLaunch(screenshotScene: screenshotScene, defaults: defaults)
+        let restoration = ToneSettings.initial(screenshotScene: screenshotScene, store: store)
+        let initial = restoration.settings
+        _audioManager = StateObject(wrappedValue: AudioManager.forLaunch(screenshotScene: screenshotScene, settings: initial))
+        _frequency = State(initialValue: initial.frequency)
+        _frequencyText = State(initialValue: FrequencyInput.format(initial.frequency))
+        _volume = State(initialValue: initial.volume)
+        _waveform = State(initialValue: initial.waveform)
+        settingsStore = store
+        _hasPendingVolumeCapNotice = State(initialValue: restoration.volumeWasCapped)
         isScreenshotDemo = screenshotScene != nil
         initialScrollTarget = screenshotScene?.scrollTarget
     }
@@ -115,15 +125,38 @@ struct ContentView: View {
         }
         #endif
         // シートを下へスワイプして閉じたときも、閉じる操作として既読にする
-        .sheet(isPresented: $isShowingTutorial, onDismiss: { finishTutorial(.closed) }) {
+        .sheet(isPresented: $isShowingTutorial, onDismiss: {
+            finishTutorial(.closed)
+            // シートが閉じ切ってから出す（シートを出している間はダイアログを重ねて出せない）
+            presentPendingVolumeCapNotice()
+        }) {
             TutorialView(onDismiss: finishTutorial)
+        }
+        .alert(Text(VolumeCapNotice.title), isPresented: $isShowingVolumeCapNotice) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(VolumeCapNotice.message)
+        }
+        // 設定画面（macOS は別ウィンドウ、iOS はシート）で既定値に戻したら、表示と再生中の音も戻す。再生は止めない
+        .onReceive(NotificationCenter.default.publisher(for: ToneSettingsStore.didResetNotification)) { notification in
+            guard let settingsStore, notification.object as? UserDefaults === settingsStore.defaults else { return }
+            show(.default)
         }
         .onAppear {
             // 初回起動時だけ自動で出す（撮影モードと -skip-tutorial 付きの起動では出さない）
             if Tutorial.shouldPresentAutomatically(hasSeen: hasSeenTutorial) {
                 openTutorial()
+            } else {
+                presentPendingVolumeCapNotice()
             }
         }
+    }
+
+    /// 起動時に音量を下げたことを 1 度だけ知らせる
+    private func presentPendingVolumeCapNotice() {
+        guard hasPendingVolumeCapNotice else { return }
+        hasPendingVolumeCapNotice = false
+        isShowingVolumeCapNotice = true
     }
 
     /// チュートリアルを開く。説明を聞いている間に鳴り続けないよう、メイン画面の音は止める
@@ -197,18 +230,30 @@ struct ContentView: View {
         frequency = newFrequency
         frequencyText = FrequencyInput.format(newFrequency)
         audioManager.updateFrequency(newFrequency)
+        settingsStore?.save(frequency: newFrequency)
     }
     
     private func setVolume(_ newVolume: Double) {
         volume = newVolume
         audioManager.updateVolume(newVolume)
+        settingsStore?.save(volume: newVolume)
     }
     
     private func setWaveform(_ newWaveform: Waveform) {
         waveform = newWaveform
         audioManager.updateWaveform(newWaveform)
+        settingsStore?.save(waveform: newWaveform)
     }
     
+    /// 表示と音に反映する。保存はしない（既定値に戻したときは保存値を消したままにする）
+    private func show(_ settings: ToneSettings) {
+        frequency = settings.frequency
+        frequencyText = FrequencyInput.format(settings.frequency)
+        volume = settings.volume
+        waveform = settings.waveform
+        audioManager.apply(settings)
+    }
+
     /// 範囲外や数値でない入力は反映せず、入力欄を現在の周波数に戻す
     private func submitFrequencyText() {
         if let newFrequency = FrequencyInput.parse(frequencyText) {
@@ -223,6 +268,8 @@ struct ContentView: View {
 enum FrequencyInput {
     /// 可聴域に合わせた入力可能な範囲（スライダーと同じ）
     static let range: ClosedRange<Double> = 20...20000
+    /// 起動直後の周波数。聞き取りやすい基準音（A4）にする
+    static let defaultFrequency: Double = 440
     static let presets: [Double] = [100, 440, 1000, 10000]
 
     /// 入力文字列を周波数に変換する。数値でない・範囲外の場合は nil
