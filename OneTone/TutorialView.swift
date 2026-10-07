@@ -189,7 +189,11 @@ struct TutorialPageView: View {
                 }
 
                 if let caution = page.caution {
-                    Label(caution, systemImage: "exclamationmark.triangle.fill")
+                    Label {
+                        Text(caution)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                    }
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(Theme.accentSecondary)
                         .multilineTextAlignment(.leading)

@@ -137,7 +137,9 @@ render_scene() {
 }
 
 # プロセス置換の中で失敗しても set -e では止まらないので、先に取り出しておく
-LANGUAGE_LIST="$($CONFIG languages "$LANGUAGES")"
+# 既定は App Store に載せる言語（AppStore/languages.json）。LANGUAGES_COMMAND=app-languages で
+# アプリの対応言語（Localization/supported-languages.json）から選ぶ（チュートリアル用）
+LANGUAGE_LIST="$($CONFIG "${LANGUAGES_COMMAND:-languages}" "$LANGUAGES")"
 SCENE_LIST="${SCENES:-$($CONFIG scenes)}"
 
 while IFS=$'\t' read -r -u 3 language apple_language apple_locale store_locale; do
