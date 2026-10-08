@@ -7,7 +7,7 @@
 #          scripts/askhub-manual.sh final
 #
 # 流れ（担当者の Claude Code が、AskHub からコピーした指示を受けて行う）:
-#   1. start:  担当者が自分か確かめ、ready-for-loop を外し、ralph-setup.sh で制御用 worktree とスロットを作る。
+#   1. start:  担当者が自分か確かめ、ready-for-loop を外し、ralph-setup.sh で制御用 worktree とスロットを作り、epic を origin に push する。
 #              信用する author（このリポジトリに書き込み権限を持つ人）を表示し、状態用の Issue を「開始待ち」で書く
 #   2. （Claude が playbook の {{...}} を埋め、STEP A に沿って goal を作る）
 #   3. launch: 完了語を記録し、ralph-start.sh で state を作り、制御用 worktree で claude -p のループをバックグラウンドで起動する
@@ -62,6 +62,12 @@ state_set() {
   { [[ -n "$rest" ]] && printf '%s\n' "$rest"; printf '%s=%s\n' "$1" "$2"; } > "$STATE_FILE.tmp"
   mv "$STATE_FILE.tmp" "$STATE_FILE"
 }
+
+# start で記録した base branch を、resume・final でも使う（ASKHUB_BASE_BRANCH を付け忘れても、開始時と同じ base になるように）
+if [[ "$COMMAND" != start ]]; then
+  RECORDED_BASE=$(state_get base_branch)
+  if [[ -n "$RECORDED_BASE" ]]; then BASE_BRANCH="$RECORDED_BASE"; fi
+fi
 
 viewer() { gh api user --jq .login; }
 
@@ -184,13 +190,20 @@ write_status() {
 BODY
 )
   # 信用する author が作った状態用の Issue のうち、open で最も新しく更新されたもの（無ければ閉じたもので最も新しく更新されたもの）を使う
-  local trusted
+  # 信用する author ごとに探す（信用外の author が loop-status の Issue を大量に作っても、件数の上限で取りこぼさない）
+  local trusted author candidates=""
   trusted=$(trusted_authors)
-  issue=""
-  while IFS=$'\t' read -r number author; do
-    if is_trusted "$author" "$trusted"; then issue="$number"; break; fi
-  done < <(gh issue list -R "$REPOSITORY" --label loop-status --state all --limit 100 --json number,author,state,updatedAt \
-             --jq 'sort_by([(if .state == "OPEN" then 0 else 1 end), (.updatedAt | fromdateiso8601 | -.)]) | .[] | "\(.number)\t\(.author.login)"')
+  # 取得できないときは状態用の Issue を作らない。ループ（STEP D や launch の後）を止めないよう、警告だけ出して成功で返す
+  if [[ -z "$trusted" ]]; then
+    echo "warning: 信用する author を取得できないため、状態用の Issue を更新しません（gh auth status と、このリポジトリの権限を確認してください）" >&2
+    return 0
+  fi
+  while IFS= read -r author; do
+    [[ -n "$author" ]] || continue
+    candidates+=$(gh issue list -R "$REPOSITORY" --label loop-status --state all --author "$author" --limit 1000 --json number,state,updatedAt \
+                    --jq '.[] | "\(if .state == "OPEN" then 0 else 1 end)\t\(.updatedAt)\t\(.number)"')$'\n'
+  done < <(printf '%s\n' "${trusted//,/$'\n'}")
+  issue=$(printf '%s' "$candidates" | sed '/^$/d' | sort -t $'\t' -k1,1n -k2,2r | head -n 1 | cut -f 3)
   if [[ -z "$issue" ]]; then
     gh label create loop-status -R "$REPOSITORY" --color bfdadc --description "AskHub のループの状態を書き出す Issue" >/dev/null 2>&1 || true
     gh issue create -R "$REPOSITORY" --title "【AskHub】ループの状態" --label loop-status --body "$body" >/dev/null
@@ -267,16 +280,21 @@ case "$COMMAND" in
     if [[ "$(printf '%s' "$ASSIGNEE" | tr '[:upper:]' '[:lower:]')" != "$(printf '%s' "$ME" | tr '[:upper:]' '[:lower:]')" && "${ASKHUB_MANUAL_FORCE:-}" != 1 ]]; then
       fail "この手動ループの担当者は @$ASSIGNEE です（あなたは @$ME）。担当を変えるときは、Discussion に担当のコメントを付け直してください"
     fi
+    # 同じ Discussion でも、動いているループの記録（完了語など）を消さないように拒否する
+    loop_alive && fail "制御用 worktree でループが動いています（PID $(cat "$PID_FILE")）。止めてから start を実行してください（止めるには scripts/ralph-stop.sh）"
     PREVIOUS=$(state_get discussion)
     if [[ -n "$PREVIOUS" && "$PREVIOUS" != "$DISCUSSION" && -f "$LOOP_STATE" ]]; then
       fail "制御用 worktree で Discussion #$PREVIOUS の手動ループが途中です。終わってから始めてください"
     fi
     remove_ready_label "$DISCUSSION_ID"
-    (cd "$MAIN" && scripts/ralph-setup.sh "$EPIC" >/dev/null)
+    (cd "$MAIN" && scripts/ralph-setup.sh "$EPIC" "$BASE_BRANCH" >/dev/null)
+    # 子 PR の base になるので、epic を origin に置いておく（ralph-setup.sh は push しない）
+    git -C "$MAIN" push --quiet -u origin "$EPIC" || fail "$EPIC を origin に push できません"
     rm -f "$STATE_FILE"
     state_set repository "$REPOSITORY"
     state_set discussion "$DISCUSSION"
     state_set epic "$EPIC"
+    state_set base_branch "$BASE_BRANCH"
     state_set runner "$ME"
     write_status false true
     cat <<NEXT
@@ -317,20 +335,26 @@ NEXT
     [[ -n "$PROMISE" ]] || fail "完了語の記録がありません（launch で起動してください）"
     EPIC=$(state_get epic)
     # 片付け済みのスロットを作り直す（ralph-setup.sh は既存の worktree を再利用する）
-    (cd "$MAIN" && scripts/ralph-setup.sh "$EPIC" >/dev/null)
+    (cd "$MAIN" && scripts/ralph-setup.sh "$EPIC" "$BASE_BRANCH" >/dev/null)
     refresh_trusted_authors "$(trusted_authors)"
     launch_loop "$PROMISE"
     ;;
 
   final)
     [[ -f "$STATE_FILE" ]] || fail "手動ループの記録がありません"
-    if [[ -d "$CTL" && "$(pwd -P)" == "$(cd "$CTL" && pwd -P)"* ]]; then
-      fail "制御用 worktree の外（メインの checkout など）で実行してください"
+    # 制御用 worktree そのものか、その中なら拒否する（前方一致だと …-ralph-ctl2 のような別のディレクトリも拒否してしまう）
+    if [[ -d "$CTL" ]]; then
+      CTL_REAL=$(cd "$CTL" && pwd -P)
+      HERE=$(pwd -P)
+      if [[ "$HERE" == "$CTL_REAL" || "$HERE" == "$CTL_REAL/"* ]]; then
+        fail "制御用 worktree の外（メインの checkout など）で実行してください"
+      fi
     fi
     loop_alive && fail "ループがまだ動いています。終わってから最終 PR を作ってください"
     DISCUSSION=$(state_get discussion)
     EPIC=$(state_get epic)
-    EXISTING=$(gh pr list -R "$REPOSITORY" --head "$EPIC" --base "$BASE_BRANCH" --state all --json url --jq '.[0].url // ""')
+    # マージせずに閉じた PR は既存として扱わない（作り直せるように）。open かマージ済みがあれば作らない
+    EXISTING=$(gh pr list -R "$REPOSITORY" --head "$EPIC" --base "$BASE_BRANCH" --state all --json url,state --jq '[.[] | select(.state != "CLOSED")][0].url // ""')
     if [[ -n "$EXISTING" ]]; then
       echo "最終 PR は既にあります: $EXISTING"
       exit 0
@@ -344,6 +368,9 @@ NEXT
     URL=$(gh pr create -R "$REPOSITORY" --base "$BASE_BRANCH" --head "$EPIC" --title "【FEAT】$EPIC を $BASE_BRANCH に取り込む" \
       --assignee @me --label epic-final --body "$BODY")
     echo "最終 PR を作りました: $URL"
+    if [[ "$BASE_BRANCH" != develop ]]; then
+      echo "注意: base が develop ではないため、マージしてもゴール元の Discussion は自動で閉じません（close-goal-discussion.yml は develop へのマージだけを見る）。マージ後に Discussion #$DISCUSSION を手で閉じてください" >&2
+    fi
     write_status true true
     ;;
 
