@@ -16,15 +16,16 @@ struct SettingsView: View {
                 DeckPanel(title: "THEME COLOR") {
                     ThemeColorPicker(selection: $themeColor)
                 }
-                DeckPanel(title: "RESET") {
-                    ToneSettingsResetButton()
-                }
                 #if os(iOS)
                 // アイコンはテーマとは別に選ぶ（テーマを変えても連動しない）。macOS のアイコンは変えない
                 DeckPanel(title: "APP ICON") {
                     AppIconPicker()
                 }
                 #endif
+                // RESET は常に最後に置く（Discussion #169）。設定項目を足すときもこれより上に足す
+                DeckPanel(title: "RESET") {
+                    ToneSettingsResetButton()
+                }
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -39,7 +40,8 @@ struct SettingsView: View {
 }
 
 /// 周波数・音量・波形を既定値（440Hz / 50% / Sine）に戻すボタン。取り消せないので確認してから戻す。
-/// 開いているメイン画面へは `ToneSettingsStore.didResetNotification` で伝える（設定画面からはメイン画面の状態に直接届かないため）
+/// 開いているメイン画面へは `ToneSettingsStore.didResetNotification` で伝える（設定画面からはメイン画面の状態に直接届かないため）。
+/// 他の設定と区別するため、テーマ色を使わずグレーで表示する（押せるまま。無効化ではない）
 struct ToneSettingsResetButton: View {
     var store = ToneSettingsStore()
     @State private var isConfirming = false
@@ -50,11 +52,11 @@ struct ToneSettingsResetButton: View {
         } label: {
             Label("Reset to Defaults", systemImage: "arrow.counterclockwise")
                 .font(.system(.callout, design: .rounded).weight(.medium))
-                .foregroundStyle(Theme.textPrimary)
+                .foregroundStyle(Theme.textSecondary)
                 .padding(.vertical, 12)
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(WaveformButtonStyle(isSelected: false))
+        .buttonStyle(ResetButtonStyle())
         .padding(4)
         .alert(Text(ToneSettingsResetConfirmation.title), isPresented: $isConfirming) {
             Button("Reset", role: .destructive) { store.reset() }
@@ -62,6 +64,24 @@ struct ToneSettingsResetButton: View {
         } message: {
             Text(ToneSettingsResetConfirmation.message)
         }
+    }
+}
+
+/// RESET のボタンの見た目。`WaveformButtonStyle` と同じ形・押し込みで、差し色の代わりにグレーを使う。
+/// `WaveformButtonStyle` は他の選択ボタンと共有しているので変えずに、RESET だけこちらを使う
+private struct ResetButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        let shape = RoundedRectangle(cornerRadius: Theme.cornerRadius)
+        configuration.label
+            .background(
+                ZStack {
+                    shape.fill(Theme.surfaceRaised)
+                    shape.fill(Theme.textSecondary.opacity(configuration.isPressed ? 0.15 : 0))
+                }
+            )
+            .overlay(shape.strokeBorder(Theme.textDisabled.opacity(0.5), lineWidth: 1))
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .contentShape(shape)
     }
 }
 
@@ -190,6 +210,16 @@ struct AppIconPicker: View {
 
 #Preview {
     SettingsView()
+}
+
+#Preview("RESET の見た目") {
+    DeckPanel(title: "RESET") {
+        ToneSettingsResetButton()
+    }
+    .padding()
+    .frame(width: 400)
+    .themedScreen()
+    .environment(\.themeColor, .pink)
 }
 
 #Preview("選択の見た目") {
